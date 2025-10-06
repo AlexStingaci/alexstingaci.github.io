@@ -1,4 +1,4 @@
-Homework 1 : "What is statistics and why can it be useful for cybersecurity?"
+# Homework 1 : "What is statistics and why can it be useful for cybersecurity?"
 
 1) Statistics is the science of collecting, analyzing, interpreting, and presenting data to understand trends, draw conclusions, and make informed decisions in the face of uncertainty. In cybersecurity, statistics is crucial for risk assessment, in fact it helps identify vulnerabilities, analyze past breaches, and forecast future threats.
 
