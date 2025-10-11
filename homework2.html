@@ -5,122 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Homework 2 — Dataset & Distribuzioni</title>
 
-  <!-- Font (opzionale). Puoi rimuovere questa riga se preferisci i font di sistema -->
+  <!-- Serif sobrio; puoi rimuovere la riga sotto se preferisci i font di sistema -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
-      --bg: #f7f7fb;
-      --paper: #ffffff;
-      --ink: #0b0c10;
-      --muted: #6a6f7a;
-      --line: #e6e8ee;
-      --radius: 14px;
-      --shadow: 0 6px 24px rgba(0,0,0,.06);
-      --maxw: 880px;
+      --page-max: 760px;
+      --ink: #111;
+      --muted: #666;
+      --line: #e6e6e6;
+      --bg: #fff;
     }
 
-    /* Reset minimale */
+    /* Reset essenziale */
     *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
     body{
       margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif;
       color: var(--ink);
       background: var(--bg);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.65;
     }
 
-    /* Layout */
-    .container{
-      max-width: var(--maxw);
-      margin: clamp(28px, 5vw, 56px) auto;
+    /* Layout “pagina” */
+    .page{
+      max-width: var(--page-max);
+      margin: 48px auto 96px;
       padding: 0 20px;
     }
-    .card{
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: clamp(20px, 3vw, 36px);
-    }
 
-    /* Header */
     header{
-      text-align: center;
-      margin-bottom: clamp(16px, 3vw, 24px);
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
     }
     h1{
       margin: 0 0 6px 0;
-      font-size: clamp(24px, 3.2vw, 36px);
-      letter-spacing: -0.01em;
-      font-weight: 700;
+      font-weight: 600;
+      font-size: clamp(26px, 4vw, 36px);
+      letter-spacing: .2px;
     }
     .subtitle{
-      margin: 0 auto;
-      max-width: 60ch;
+      margin: 0;
       color: var(--muted);
       font-size: 15px;
     }
 
-    /* Sezioni testo */
-    section + section { margin-top: 20px; }
-    section{
-      padding: clamp(14px, 2vw, 18px);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fff;
-    }
+    /* Testo */
+    section + section { margin-top: 24px; }
     h2{
-      margin: 0 0 8px 0;
-      font-size: clamp(18px, 2.6vw, 24px);
-      letter-spacing: -0.005em;
+      margin: 0 0 10px 0;
+      font-size: clamp(18px, 2.6vw, 22px);
+      font-weight: 600;
     }
     p{ margin: 0; }
     p + p { margin-top: 10px; }
 
-    /* Galleria / esempi */
+    /* Esempi */
     .examples{
-      margin-top: clamp(20px, 3vw, 28px);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: clamp(14px, 2vw, 18px);
-      background: #fff;
+      margin-top: 28px;
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
     }
-    .examples h2{ margin-bottom: 6px; }
-    .note{ color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+    .note{
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 12px 0;
+    }
 
+    /* Galleria super semplice: 1 colonna, 2 colonne solo su schermi larghi */
     .gallery{
       display: grid;
       grid-template-columns: 1fr;
-      gap: 14px;
+      gap: 16px;
     }
-    @media (min-width: 780px){
+    @media (min-width: 880px){
       .gallery{ grid-template-columns: 1fr 1fr; }
     }
 
     figure{
       margin: 0;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px;
-      background: #fff;
+      padding: 12px;
     }
 
-    /* 📷 Immagini per intero (senza ritagli) */
-    .media{
-      position: relative;
-      overflow: hidden;
-      border-radius: 8px;
-      background: #fafafa;
-    }
+    /* Immagini MOSTRATE PER INTERO */
     .media img{
-      width: 100%;
-      height: auto;           /* mantiene proporzioni */
-      object-fit: contain;    /* nessun ritaglio */
       display: block;
+      width: 100%;
+      height: auto;         /* mantiene proporzioni, niente tagli */
+      object-fit: contain;  /* sicurezza: nessun ritaglio */
     }
 
     figcaption{
@@ -129,105 +105,79 @@
       color: var(--muted);
     }
 
-    /* Link "torna su" minimale (opzionale) */
-    .to-top{
-      position: fixed;
-      right: 20px; bottom: 20px;
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 8px 12px;
-      text-decoration: none;
-      color: var(--ink);
-      font-weight: 600;
-      box-shadow: var(--shadow);
-    }
+    /* Link discreti */
+    a{ color: inherit; text-underline-offset: 3px; }
+    a:hover{ color: #000; }
 
     /* Stampa pulita */
     @media print{
-      :root{ --bg:#fff; }
-      body{ background:#fff; }
-      .card{ box-shadow:none; border:none; padding:0; }
-      .to-top{ display:none; }
-    }
-
-    /* Dark mode automatico (discreta, non pacchiana) */
-    @media (prefers-color-scheme: dark){
-      :root{
-        --bg: #0f1116;
-        --paper: #14171f;
-        --ink: #e8ebf1;
-        --muted: #9aa3b2;
-        --line: #262b36;
-        --shadow: 0 6px 24px rgba(0,0,0,.35);
-      }
+      .page{ margin: 0; padding: 0; max-width: none; }
+      header{ border: 0; padding-bottom: 0; margin-bottom: 16px; }
+      .gallery{ grid-template-columns: 1fr 1fr; gap: 12px; }
+      figure{ border-color: #ddd; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <header>
-        <h1>Dataset & Distribuzioni</h1>
-        <p class="subtitle">Una presentazione essenziale e ordinata dei concetti chiave, con esempi dal tuo database.</p>
-      </header>
+  <main class="page">
+    <header>
+      <h1>Homework 2 — Dataset & Distribuzioni</h1>
+      <p class="subtitle">Versione minimale, tipografica, con immagini per intero.</p>
+    </header>
 
-      <section aria-labelledby="dataset">
-        <h2 id="dataset">What is a dataset?</h2>
-        <p>A dataset is a structured collection of related data, usually organized in rows and columns, that represents information about a specific topic or domain. Each row typically corresponds to an individual observation or record, while each column represents a variable or attribute describing those observations. Datasets are fundamental in data analysis, statistics, and machine learning, as they provide the raw material for discovering patterns, testing hypotheses, and building predictive models.</p>
-        <p>In practical applications, datasets are used for a variety of purposes — from academic research and business intelligence to training artificial intelligence systems. A well-prepared dataset ensures that analyses and models are reliable, interpretable, and reproducible.</p>
-      </section>
+    <section aria-labelledby="dataset">
+      <h2 id="dataset">What is a dataset?</h2>
+      <p>A dataset is a structured collection of related data, usually organized in rows and columns, that represents information about a specific topic or domain. Each row typically corresponds to an individual observation or record, while each column represents a variable or attribute describing those observations. Datasets are fundamental in data analysis, statistics, and machine learning, as they provide the raw material for discovering patterns, testing hypotheses, and building predictive models.</p>
+      <p>In practical applications, datasets are used for a variety of purposes — from academic research and business intelligence to training artificial intelligence systems. A well-prepared dataset ensures that analyses and models are reliable, interpretable, and reproducible.</p>
+    </section>
 
-      <section aria-labelledby="distribution">
-        <h2 id="distribution">What is a distribution?</h2>
-        <p>A distribution describes how the values of a variable are spread or arranged across different possible outcomes. In other words, it shows how often each value or range of values occurs within a dataset. Understanding the distribution of data is essential in statistics because it reveals patterns, tendencies, and variability within the data.</p>
-        <p>Distributions can be represented in various forms, such as tables, graphs, or mathematical functions. In general, analyzing a distribution helps identify key statistical measures such as the mean, median, mode, variance, and standard deviation, providing insights into the central tendency and spread of the data.</p>
-      </section>
+    <section aria-labelledby="distribution">
+      <h2 id="distribution">What is a distribution?</h2>
+      <p>A distribution describes how the values of a variable are spread or arranged across different possible outcomes. In other words, it shows how often each value or range of values occurs within a dataset. Understanding the distribution of data is essential in statistics because it reveals patterns, tendencies, and variability within the data.</p>
+      <p>Distributions can be represented in various forms, such as tables, graphs, or mathematical functions. In general, analyzing a distribution helps identify key statistical measures such as the mean, median, mode, variance, and standard deviation, providing insights into the central tendency and spread of the data.</p>
+    </section>
 
-      <div class="examples" aria-labelledby="examples">
-        <h2 id="examples">Distribuzioni univariante e bivariante</h2>
-        <p class="note">Sostituisci i file <code>db.png</code>, <code>query_1.png</code>, <code>ris1.png</code>, <code>quer_2.png</code>, <code>ris2.png</code> con i tuoi.</p>
+    <section class="examples" aria-labelledby="examples">
+      <h2 id="examples">Distribuzioni univariante e bivariante</h2>
+      <p class="note">Sostituisci i file <code>db.png</code>, <code>query_1.png</code>, <code>ris1.png</code>, <code>quer_2.png</code>, <code>ris2.png</code> con i tuoi.</p>
 
-        <div class="gallery">
-          <figure>
-            <div class="media">
-              <img src="db.png" alt="Schema del database: tabelle e relazioni">
-            </div>
-            <figcaption><strong>Schema DB.</strong> Struttura tabelle e chiavi.</figcaption>
-          </figure>
+      <div class="gallery">
+        <figure>
+          <div class="media">
+            <img src="db.png" alt="Schema del database: tabelle e relazioni">
+          </div>
+          <figcaption><strong>Schema DB.</strong> Struttura tabelle e chiavi.</figcaption>
+        </figure>
 
-          <figure>
-            <div class="media">
-              <img src="query_1.png" alt="Risultato query: distribuzione univariata">
-            </div>
-            <figcaption><strong>Query 1.</strong> Distribuzione univariata e interpretazione.</figcaption>
-          </figure>
+        <figure>
+          <div class="media">
+            <img src="query_1.png" alt="Risultato query: distribuzione univariata">
+          </div>
+          <figcaption><strong>Query 1.</strong> Distribuzione univariata.</figcaption>
+        </figure>
 
-          <figure>
-            <div class="media">
-              <img src="ris1.png" alt="Istogramma variabile X">
-            </div>
-            <figcaption><strong>Istogramma.</strong> Frequenze, scelta dei bin.</figcaption>
-          </figure>
+        <figure>
+          <div class="media">
+            <img src="ris1.png" alt="Istogramma variabile X">
+          </div>
+          <figcaption><strong>Istogramma.</strong> Frequenze e scelta dei bin.</figcaption>
+        </figure>
 
-          <figure>
-            <div class="media">
-              <img src="quer_2.png" alt="Risultato query bivariata">
-            </div>
-            <figcaption><strong>Query 2.</strong> Relazione tra due variabili.</figcaption>
-          </figure>
+        <figure>
+          <div class="media">
+            <img src="quer_2.png" alt="Risultato query bivariata">
+          </div>
+          <figcaption><strong>Query 2.</strong> Relazione tra due variabili.</figcaption>
+        </figure>
 
-          <figure>
-            <div class="media">
-              <img src="ris2.png" alt="Grafico distribuzione bivariata">
-            </div>
-            <figcaption><strong>Grafico.</strong> Andamento congiunto e pattern.</figcaption>
-          </figure>
-        </div>
+        <figure>
+          <div class="media">
+            <img src="ris2.png" alt="Grafico distribuzione bivariata">
+          </div>
+          <figcaption><strong>Grafico.</strong> Andamento congiunto e pattern.</figcaption>
+        </figure>
       </div>
-    </div>
-  </div>
-
-  <a class="to-top" href="#top" aria-label="Torna all’inizio">↑</a>
+    </section>
+  </main>
 </body>
 </html>
