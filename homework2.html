@@ -33,7 +33,7 @@
         radial-gradient(900px 400px at -10% 0%, #b48dff22, transparent),
         var(--bg);
       display: grid;
-      place-items: center;           /* Centro verticale + orizzontale */
+      place-items: center;           
       padding: 32px;
     }
 
@@ -54,19 +54,7 @@
       text-align: center;
       margin-bottom: 28px;
     }
-    .chip{
-      display: inline-flex;
-      gap: 10px;
-      align-items: center;
-      padding: 8px 12px;
-      font-size: 12px;
-      letter-spacing: .4px;
-      color: var(--muted);
-      border: 1px solid #314064;
-      border-radius: 999px;
-      background: #0f1530cc;
-      box-shadow: 0 6px 16px rgba(0,0,0,.25) inset, 0 0 0 1px #0006;
-    }
+
     h1{
       margin: 16px 0 8px;
       font-size: clamp(28px, 4.6vw, 44px);
@@ -77,12 +65,6 @@
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-    }
-    .subtitle{
-      margin: 0 auto;
-      max-width: 60ch;
-      color: var(--muted);
-      line-height: 1.5;
     }
 
     .grid{
@@ -103,11 +85,13 @@
       font-size: clamp(20px, 3.2vw, 28px);
       letter-spacing: -0.01em;
     }
+
     p{
       color: #d7e3ff;
       line-height: 1.7;
       margin: 0;
     }
+
     p + p { margin-top: 12px; }
 
     /* Sezione Esempi (galleria) */
@@ -119,15 +103,18 @@
       margin-bottom: 14px;
       flex-wrap: wrap;
     }
+
     .note{
       font-size: 14px;
       color: var(--muted);
     }
+
     .gallery{
       display: grid;
       grid-template-columns: repeat(12, 1fr);
       gap: 12px;
     }
+
     .tile{
       grid-column: span 12;
       position: relative;
@@ -137,15 +124,25 @@
       background: #0b1126;
       transition: transform .2s ease, box-shadow .2s ease;
       cursor: zoom-in;
+      padding: 10px;
     }
-    .tile:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+
+    .tile:hover{ 
+      transform: translateY(-2px); 
+      box-shadow: 0 12px 30px rgba(0,0,0,.35); 
+    }
+
+    /* 🔥 Mostra le immagini interamente */
     .tile img{
       width: 100%;
-      height: 260px;
-      object-fit: cover;
+      height: auto;
+      object-fit: contain;
       display: block;
       filter: contrast(1.02) saturate(1.05);
+      background-color: #0b1126;
+      border-radius: 8px;
     }
+
     .tile figcaption{
       padding: 10px 14px 14px;
       font-size: 14px;
@@ -164,20 +161,9 @@
       .tile{ grid-column: span 4; }
     }
 
-    /* Link e focus */
     a{ color: var(--accent); text-decoration: none; }
     a:hover{ text-decoration: underline; }
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      border: 1px solid #334268;
-      background: #0d1532;
-      color: #cfe0ff;
-    }
 
-    /* Piccolo pulsante "Torna su" */
     .to-top{
       position: fixed; inset: auto 24px 24px auto;
       padding: 10px 12px;
@@ -193,6 +179,7 @@
     .to-top:focus-visible{ outline: none; box-shadow: var(--ring); }
   </style>
 </head>
+
 <body>
   <main class="wrap" id="top">
     <div class="card">
@@ -201,14 +188,12 @@
       </header>
 
       <div class="grid">
-        <!-- Sezione: What is a dataset? -->
         <section aria-labelledby="dataset">
           <h2 id="dataset">What is a dataset?</h2>
           <p>A dataset is a structured collection of related data, usually organized in rows and columns, that represents information about a specific topic or domain. Each row typically corresponds to an individual observation or record, while each column represents a variable or attribute describing those observations. Datasets are fundamental in data analysis, statistics, and machine learning, as they provide the raw material for discovering patterns, testing hypotheses, and building predictive models.</p>
           <p>In practical applications, datasets are used for a variety of purposes — from academic research and business intelligence to training artificial intelligence systems. A well-prepared dataset ensures that analyses and models are reliable, interpretable, and reproducible.</p>
         </section>
 
-        <!-- Sezione: What is a distribution? -->
         <section aria-labelledby="distribution">
           <h2 id="distribution">What is a distribution?</h2>
           <p>A distribution describes how the values of a variable are spread or arranged across different possible outcomes. In other words, it shows how often each value or range of values occurs within a dataset. Understanding the distribution of data is essential in statistics because it reveals patterns, tendencies, and variability within the data.</p>
@@ -216,53 +201,38 @@
         </section>
       </div>
 
-      <!-- Sezione: Esempi con immagini del DB e query -->
       <section style="margin-top: clamp(18px, 3vw, 28px);" aria-labelledby="examples">
         <div class="examples-head">
           <h2 id="examples">Univariante and Bivariante Distribution</h2>
-
         </div>
 
-        <!-- Galleria immagini: sostituisci src e figcaption -->
         <div class="gallery">
-          <!-- Esempio 1 -->
           <figure class="tile">
-            <!-- Sostituisci con lo screenshot dello schema del DB -->
             <img src="db.png" alt="Schema del database: tabelle e relazioni" />
             <figcaption><strong>Schema DB</strong> — Qui descriverai la struttura delle tabelle e le chiavi.</figcaption>
           </figure>
 
-          <!-- Esempio 2 -->
           <figure class="tile">
-            <!-- Screenshot di una query (SELECT ...) -->
             <img src="query_1.png" alt="Risultato query: distribuzione univariata su variabile X" />
             <figcaption><strong>Query 1</strong> — Spiegazione della logica della query e del risultato.</figcaption>
           </figure>
 
-          <!-- Esempio 3 -->
           <figure class="tile">
-            <!-- Screenshot di un grafico/istogramma esportato -->
             <img src="ris1.png" alt="Istogramma della variabile X con frequenze" />
             <figcaption><strong>Istogramma</strong> — Note su frequenze, binning e interpretazione.</figcaption>
           </figure>
 
-          <!-- Esempio 3 -->
           <figure class="tile">
-            <!-- Screenshot di un grafico/istogramma esportato -->
-            <img src="query_2.png" alt="Istogramma della variabile X con frequenze" />
-            <figcaption><strong>Istogramma</strong> — Note su frequenze, binning e interpretazione.</figcaption>
+            <img src="quer_2.png" alt="Risultato query bivariata" />
+            <figcaption><strong>Query 2</strong> — Analisi della distribuzione bivariata.</figcaption>
           </figure>
 
-          <!-- Esempio 3 -->
           <figure class="tile">
-            <!-- Screenshot di un grafico/istogramma esportato -->
-            <img src="ris2.png" alt="Istogramma della variabile X con frequenze" />
-            <figcaption><strong>Istogramma</strong> — Note su frequenze, binning e interpretazione.</figcaption>
+            <img src="ris2.png" alt="Grafico della distribuzione bivariata" />
+            <figcaption><strong>Grafico</strong> — Relazione tra le variabili e interpretazione.</figcaption>
           </figure>
-          
         </div>
 
-        <!-- Spiegazioni aggiuntive -->
         <div style="margin-top:16px; color: var(--muted); line-height:1.7">
           <p><em>Qui puoi aggiungere una spiegazione testuale più estesa per ciascun esempio, includendo il contesto, gli obiettivi dell’analisi e le conclusioni.</em></p>
         </div>
