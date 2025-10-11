@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dataset & Distribution — Appunti</title>
+
+  <!-- Font moderna, fallback sicuri -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #0b1020;
+      --card: #11172b;
+      --muted: #9fb0c9;
+      --text: #eaf1ff;
+      --accent: #6aa6ff;
+      --accent-2: #9d7cff;
+      --ring: 0 0 0 8px color-mix(in oklab, var(--accent) 20%, transparent);
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 500px at 80% -50%, #3c66ff22, transparent),
+        radial-gradient(900px 400px at -10% 0%, #b48dff22, transparent),
+        var(--bg);
+      display: grid;
+      place-items: center;           /* Centro verticale + orizzontale */
+      padding: 32px;
+    }
+
+    .wrap{
+      width: min(980px, 100%);
+    }
+
+    .card{
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, #ffffff06), var(--card));
+      border: 1px solid #2a3552;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 4vw, 36px);
+      backdrop-filter: saturate(1.2) blur(6px);
+    }
+
+    header{
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .chip{
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 12px;
+      font-size: 12px;
+      letter-spacing: .4px;
+      color: var(--muted);
+      border: 1px solid #314064;
+      border-radius: 999px;
+      background: #0f1530cc;
+      box-shadow: 0 6px 16px rgba(0,0,0,.25) inset, 0 0 0 1px #0006;
+    }
+    h1{
+      margin: 16px 0 8px;
+      font-size: clamp(28px, 4.6vw, 44px);
+      line-height: 1.08;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, var(--text), color-mix(in oklab, var(--text) 75%, var(--accent-2)));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .subtitle{
+      margin: 0 auto;
+      max-width: 60ch;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .grid{
+      display: grid;
+      gap: clamp(16px, 2.2vw, 24px);
+      grid-template-columns: 1fr;
+    }
+
+    section{
+      border: 1px solid #2a3552;
+      border-radius: calc(var(--radius) - 6px);
+      padding: clamp(16px, 2.2vw, 22px);
+      background: #0f1630aa;
+    }
+
+    h2{
+      margin: 0 0 10px;
+      font-size: clamp(20px, 3.2vw, 28px);
+      letter-spacing: -0.01em;
+    }
+    p{
+      color: #d7e3ff;
+      line-height: 1.7;
+      margin: 0;
+    }
+    p + p { margin-top: 12px; }
+
+    /* Sezione Esempi (galleria) */
+    .examples-head{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .note{
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .gallery{
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .tile{
+      grid-column: span 12;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #2a3552;
+      background: #0b1126;
+      transition: transform .2s ease, box-shadow .2s ease;
+      cursor: zoom-in;
+    }
+    .tile:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+    .tile img{
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      display: block;
+      filter: contrast(1.02) saturate(1.05);
+    }
+    .tile figcaption{
+      padding: 10px 14px 14px;
+      font-size: 14px;
+      color: var(--muted);
+      border-top: 1px solid #223050;
+      background: linear-gradient(180deg, #0d1530, #0b1126);
+    }
+
+    /* Responsive colonne per immagini */
+    @media (min-width: 640px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+      .tile{ grid-column: span 6; }
+    }
+    @media (min-width: 960px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+      .tile{ grid-column: span 4; }
+    }
+
+    /* Link e focus */
+    a{ color: var(--accent); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid #334268;
+      background: #0d1532;
+      color: #cfe0ff;
+    }
+
+    /* Piccolo pulsante "Torna su" */
+    .to-top{
+      position: fixed; inset: auto 24px 24px auto;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #0f1630dd;
+      border: 1px solid #2a3552;
+      backdrop-filter: blur(4px);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .to-top:focus-visible{ outline: none; box-shadow: var(--ring); }
+  </style>
+</head>
+<body>
+  <main class="wrap" id="top">
+    <div class="card">
+      <header>
+        <span class="chip" aria-hidden="true">📘 Appunti di Statistica</span>
+        <h1>Dataset & Distribuzioni</h1>
+        <p class="subtitle">Una pagina pulita e centrata per introdurre i concetti chiave e mostrare alcuni esempi pratici dal tuo database.</p>
+      </header>
+
+      <div class="grid">
+        <!-- Sezione: What is a dataset? -->
+        <section aria-labelledby="dataset">
+          <h2 id="dataset">What is a dataset?</h2>
+          <p>A dataset is a structured collection of related data, usually organized in rows and columns, that represents information about a specific topic or domain. Each row typically corresponds to an individual observation or record, while each column represents a variable or attribute describing those observations. Datasets are fundamental in data analysis, statistics, and machine learning, as they provide the raw material for discovering patterns, testing hypotheses, and building predictive models.</p>
+          <p>In practical applications, datasets are used for a variety of purposes — from academic research and business intelligence to training artificial intelligence systems. A well-prepared dataset ensures that analyses and models are reliable, interpretable, and reproducible.</p>
+        </section>
+
+        <!-- Sezione: What is a distribution? -->
+        <section aria-labelledby="distribution">
+          <h2 id="distribution">What is a distribution?</h2>
+          <p>A distribution describes how the values of a variable are spread or arranged across different possible outcomes. In other words, it shows how often each value or range of values occurs within a dataset. Understanding the distribution of data is essential in statistics because it reveals patterns, tendencies, and variability within the data.</p>
+          <p>Distributions can be represented in various forms, such as tables, graphs, or mathematical functions. In general, analyzing a distribution helps identify key statistical measures such as the mean, median, mode, variance, and standard deviation, providing insights into the central tendency and spread of the data.</p>
+        </section>
+      </div>
+
+      <!-- Sezione: Esempi con immagini del DB e query -->
+      <section style="margin-top: clamp(18px, 3vw, 28px);" aria-labelledby="examples">
+        <div class="examples-head">
+          <h2 id="examples">Esempi dal tuo DB</h2>
+          <span class="note">Suggerimento: clic sulle immagini per ingrandire (<span class="kbd">Ctrl</span> + <span class="kbd">+/-</span> per zoom del browser).</span>
+        </div>
+
+        <!-- Galleria immagini: sostituisci src e figcaption -->
+        <div class="gallery">
+          <!-- Esempio 1 -->
+          <figure class="tile">
+            <!-- Sostituisci con lo screenshot dello schema del DB -->
+            <img src="images/schema-db.png" alt="Schema del database: tabelle e relazioni" />
+            <figcaption><strong>Schema DB</strong> — Qui descriverai la struttura delle tabelle e le chiavi.</figcaption>
+          </figure>
+
+          <!-- Esempio 2 -->
+          <figure class="tile">
+            <!-- Screenshot di una query (SELECT ...) -->
+            <img src="images/query-1.png" alt="Risultato query: distribuzione univariata su variabile X" />
+            <figcaption><strong>Query 1</strong> — Spiegazione della logica della query e del risultato.</figcaption>
+          </figure>
+
+          <!-- Esempio 3 -->
+          <figure class="tile">
+            <!-- Screenshot di un grafico/istogramma esportato -->
+            <img src="images/histogram.png" alt="Istogramma della variabile X con frequenze" />
+            <figcaption><strong>Istogramma</strong> — Note su frequenze, binning e interpretazione.</figcaption>
+          </figure>
+        </div>
+
+        <!-- Spiegazioni aggiuntive -->
+        <div style="margin-top:16px; color: var(--muted); line-height:1.7">
+          <p><em>Qui puoi aggiungere una spiegazione testuale più estesa per ciascun esempio, includendo il contesto, gli obiettivi dell’analisi e le conclusioni.</em></p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <a class="to-top" href="#top" aria-label="Torna all’inizio">↑ Torna su</a>
+</body>
+</html>
