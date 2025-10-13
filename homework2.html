@@ -75,7 +75,7 @@
       margin: 0 0 12px 0;
     }
 
-    /* Galleria super semplice: 1 colonna, 2 colonne solo su schermi larghi */
+    /* Galleria: 1 colonna, 2 colonne su schermi larghi */
     .gallery{
       display: grid;
       grid-template-columns: 1fr;
@@ -85,24 +85,31 @@
       .gallery{ grid-template-columns: 1fr 1fr; }
     }
 
+    /* Figure: immagine sopra, didascalia sotto */
     figure{
       margin: 0;
       border: 1px solid var(--line);
       padding: 12px;
+      display: flex;
+      flex-direction: column; /* forza lo stack verticale */
+      align-items: center;    /* centra immagine e didascalia */
+      gap: 8px;               /* spazio uniforme tra img e caption */
+      background: #fff;
     }
 
-    /* Immagini MOSTRATE PER INTERO */
+    /* Immagini mostrate per intero, senza ritagli */
+    .media{ width: 100%; }
     .media img{
       display: block;
       width: 100%;
-      height: auto;         /* mantiene proporzioni, niente tagli */
-      object-fit: contain;  /* sicurezza: nessun ritaglio */
+      height: auto;         /* mantiene proporzioni */
+      object-fit: contain;  /* nessun ritaglio */
     }
 
     figcaption{
-      margin-top: 8px;
       font-size: 14px;
       color: var(--muted);
+      text-align: center;
     }
 
     /* Link discreti */
@@ -122,7 +129,6 @@
   <main class="page">
     <header>
       <h1>Homework 2 — Dataset & Distribuzioni</h1>
-      <p class="subtitle">Versione minimale, tipografica, con immagini per intero.</p>
     </header>
 
     <section aria-labelledby="dataset">
