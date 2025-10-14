@@ -16,6 +16,8 @@
       --muted: #666;
       --line: #e6e6e6;
       --bg: #fff;
+      /* Rapporto predefinito dell'area immagine (modifica a piacere) */
+      --media-ratio: 16/10;
     }
 
     /* Reset essenziale */
@@ -91,19 +93,26 @@
       border: 1px solid var(--line);
       padding: 12px;
       display: flex;
-      flex-direction: column; /* forza lo stack verticale */
-      align-items: center;    /* centra immagine e didascalia */
-      gap: 8px;               /* spazio uniforme tra img e caption */
+      flex-direction: column;
+      gap: 8px;
       background: #fff;
     }
 
-    /* Immagini mostrate per intero, senza ritagli */
-    .media{ width: 100%; }
-    .media img{
-      display: block;
+    /* AREA IMMAGINE: riempi interamente lo spazio */
+    .media{
+      position: relative;
       width: 100%;
-      height: auto;         /* mantiene proporzioni */
-      object-fit: contain;  /* nessun ritaglio */
+      /* L'altezza è determinata dal rapporto: modifica --media-ratio per cambiare l'aspect */
+      aspect-ratio: var(--media-ratio);
+      overflow: hidden;              /* nasconde l'eventuale ritaglio */
+      background: #f6f6f6;           /* fallback mentre l'immagine carica */
+    }
+    .media img{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;             /* RIEMPI: nessuna banda; ritaglia se necessario */
     }
 
     figcaption{
@@ -148,7 +157,8 @@
       <p class="note">Sostituisci i file <code>db.png</code>, <code>query_1.png</code>, <code>ris1.png</code>, <code>quer_2.png</code>, <code>ris2.png</code> con i tuoi.</p>
 
       <div class="gallery">
-        <figure>
+        <!-- Esempio: rapporto personalizzato 4:3 solo per questo riquadro -->
+        <figure style="--media-ratio: 4/3;">
           <div class="media">
             <img src="db.png" alt="Schema del database: tabelle e relazioni">
           </div>
@@ -169,7 +179,7 @@
           <figcaption><strong>Istogramma.</strong> Frequenze e scelta dei bin.</figcaption>
         </figure>
 
-        <figure>
+        <figure style="--media-ratio: 1/1;">
           <div class="media">
             <img src="quer_2.png" alt="Risultato query bivariata">
           </div>
