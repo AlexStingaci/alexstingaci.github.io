@@ -16,11 +16,9 @@
       --muted: #666;
       --line: #e6e6e6;
       --bg: #fff;
-      /* Rapporto predefinito dell'area immagine (modifica a piacere) */
       --media-ratio: 16/10;
     }
 
-    /* Reset essenziale */
     *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; }
     body{
@@ -31,7 +29,6 @@
       line-height: 1.65;
     }
 
-    /* Layout “pagina” */
     .page{
       max-width: var(--page-max);
       margin: 48px auto 96px;
@@ -49,13 +46,7 @@
       font-size: clamp(26px, 4vw, 36px);
       letter-spacing: .2px;
     }
-    .subtitle{
-      margin: 0;
-      color: var(--muted);
-      font-size: 15px;
-    }
 
-    /* Testo */
     section + section { margin-top: 24px; }
     h2{
       margin: 0 0 10px 0;
@@ -65,19 +56,13 @@
     p{ margin: 0; }
     p + p { margin-top: 10px; }
 
-    /* Esempi */
     .examples{
       margin-top: 28px;
       border-top: 1px solid var(--line);
       padding-top: 20px;
     }
-    .note{
-      color: var(--muted);
-      font-size: 14px;
-      margin: 0 0 12px 0;
-    }
+    .note{ color: var(--muted); font-size: 14px; margin: 0 0 12px 0; }
 
-    /* Galleria: 1 colonna, 2 colonne su schermi larghi */
     .gallery{
       display: grid;
       grid-template-columns: 1fr;
@@ -87,7 +72,6 @@
       .gallery{ grid-template-columns: 1fr 1fr; }
     }
 
-    /* Figure: immagine sopra, didascalia sotto */
     figure{
       margin: 0;
       border: 1px solid var(--line);
@@ -98,7 +82,6 @@
       background: #fff;
     }
 
-    /* AREA IMMAGINE: riempi interamente lo spazio */
     .media{
       position: relative;
       width: 100%;
@@ -120,11 +103,9 @@
       text-align: center;
     }
 
-    /* Link discreti */
     a{ color: inherit; text-underline-offset: 3px; }
     a:hover{ color: #000; }
 
-    /* Stampa pulita */
     @media print{
       .page{ margin: 0; padding: 0; max-width: none; }
       header{ border: 0; padding-bottom: 0; margin-bottom: 16px; }
@@ -132,14 +113,10 @@
       figure{ border-color: #ddd; }
     }
 
-    /* ===================================================== */
-    /*            SEZIONE INTEGRATA: CESARE TOOL             */
-    /* ===================================================== */
-
+    /* ====================== CESARE TOOL ====================== */
     .cesare{ margin-top: 28px; border-top: 1px solid var(--line); padding-top: 20px; }
     .cesare .small{ color: var(--muted); font-size: 14px; }
 
-    /* Schede e griglia, in stile pagina */
     .cesare-grid{
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -157,15 +134,9 @@
       padding: 14px;
     }
     .cesare-card h3{ margin: 0 0 8px 0; font-size: 18px; }
-
     .cesare-textarea{
-      width: 100%;
-      min-height: 160px;
-      resize: vertical;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      background: #fff;
+      width: 100%; min-height: 160px; resize: vertical; padding: 10px 12px;
+      border-radius: 10px; border: 1px solid var(--line); background: #fff;
       font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
     }
     .cesare-row{ display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
@@ -176,62 +147,33 @@
     }
     .cesare-mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
-    /* Grafici (istogrammi) */
     .cesare-charts{ display: grid; gap: 14px; }
     .cesare-chart{
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px 10px 24px;
-      background: #fff;
+      border: 1px solid var(--line); border-radius: 12px; padding: 10px 10px 24px; background: #fff;
     }
     .cesare-chart-head{ display: flex; align-items: baseline; gap: 8px; margin: 0 0 8px 2px; }
     .cesare-title{ font-size: 15px; font-weight: 600; }
     .cesare-sub{ color: var(--muted); font-size: 13px; margin-left: auto; }
 
     .cesare-axis{
-      position: relative;
-      height: 240px;
-      border-left: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-      padding: 8px 0 0 8px;
+      position: relative; height: 240px; border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 8px 0 0 8px;
     }
     .cesare-bars{
-      position: absolute; inset: 8px 0 0 8px;
-      display: grid; grid-template-columns: repeat(26, 1fr);
-      align-items: end; gap: 6px;
+      position: absolute; inset: 8px 0 0 8px; display: grid; grid-template-columns: repeat(26, 1fr); align-items: end; gap: 6px;
     }
-    .cesare-bar{
-      position: relative; height: 100%;
-      display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px;
-    }
-    .cesare-rect{
-      width: 100%;
-      border-radius: 6px 6px 0 0;
-      background: #b9c3cf; /* bar base */
-      height: var(--h, 0%);
-      transition: height .2s ease;
-    }
-    .cesare-bar.alt .cesare-rect{ background: #9ec5ff; } /* bar alternativa */
+    .cesare-bar{ position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+    .cesare-rect{ width: 100%; border-radius: 6px 6px 0 0; background: #b9c3cf; height: var(--h, 0%); transition: height .2s ease; }
+    .cesare-bar.alt .cesare-rect{ background: #9ec5ff; }
     .cesare-val{
-      position: absolute; bottom: calc(var(--h,0%) + 8px);
-      transform: translateY(50%);
-      font-size: 12px; color: #0b1220; opacity: .8;
-      user-select: none;
+      position: absolute; bottom: calc(var(--h,0%) + 8px); transform: translateY(50%); font-size: 12px; color: #0b1220; opacity: .8; user-select: none;
     }
-    .cesare-labels{
-      display: grid; grid-template-columns: repeat(26, 1fr);
-      gap: 6px; margin-top: 6px; color: #0b1220;
-    }
+    .cesare-labels{ display: grid; grid-template-columns: repeat(26, 1fr); gap: 6px; margin-top: 6px; color: #0b1220; }
     .cesare-labels span{ font-size: 12px; text-align: center; user-select: none; }
 
-    /* Decoder tabella + output */
     .cesare-table{
-      width: 100%; border-collapse: collapse; font-size: 13px; background: #fff;
-      border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+      width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
     }
-    .cesare-table thead th{
-      background: #f6f7fb; text-align: left; padding: 8px; border-bottom: 1px solid var(--line);
-    }
+    .cesare-table thead th{ background: #f6f7fb; text-align: left; padding: 8px; border-bottom: 1px solid var(--line); }
     .cesare-table td{ padding: 8px; border-top: 1px solid var(--line); vertical-align: top; }
     .cesare-preview{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 420px; }
     .cesare-out{
@@ -266,7 +208,6 @@
       <p class="note">Sostituisci i file <code>db.png</code>, <code>query_1.png</code>, <code>ris1.png</code>, <code>quer_2.png</code>, <code>ris2.png</code> con i tuoi.</p>
 
       <div class="gallery">
-        <!-- Esempio: rapporto personalizzato 4:3 solo per questo riquadro -->
         <figure style="--media-ratio: 4/3;">
           <div class="media">
             <img src="db.png" alt="Schema del database: tabelle e relazioni">
@@ -304,12 +245,10 @@
       </div>
     </section>
 
-    <!-- ======================================= -->
-    <!--     NUOVA SEZIONE: CESARE (integrata)   -->
-    <!-- ======================================= -->
+    <!-- ==================== SEZIONE CESARE ==================== -->
     <section class="cesare" aria-labelledby="cesare-title">
       <h2 id="cesare-title">Letter frequencies & Caesar cipher (ciphertext)</h2>
-      <p class="small"><strong>Explanation:</strong> The box below contains <em>ciphertext</em>. The first histogram shows its letter counts (A–Z). The second histogram applies an additional Caesar shift of <span class="cesare-mono">12</span> to the same ciphertext (reference only). The decoder ranks all 26 shifts via chi-square against typical English frequencies and suggests the most likely plaintext; you can also adjust the shift manually.</p>
+      <p class="small"><strong>Explanation:</strong> The box below contains <em>ciphertext</em>. The first histogram shows its letter counts (A–Z). The second histogram applies a Caesar shift of <span id="ces-hist-label" class="cesare-mono">12</span> to the same ciphertext (reference only). The decoder ranks all 26 shifts via chi-square against typical English frequencies and suggests the most likely plaintext; you can also adjust the shift manually.</p>
 
       <div class="cesare-grid">
         <!-- Input ciphertext -->
@@ -318,7 +257,7 @@
           <p class="small"><strong>Explanation:</strong> Paste (or edit) any ciphertext. Counters consider only A–Z letters: diacritics are stripped; digits, spaces, and punctuation are ignored in charts.</p>
           <textarea id="ces-text" class="cesare-textarea" spellcheck="false" placeholder="Paste your ciphertext here…">Ftq cguow ndaiz raj vgybe ahqd ftq xmlk pas. Bmow yk naj iuft ruhq palqz xucgad vgse.</textarea>
           <div class="cesare-row">
-            <span class="cesare-badge" title="Solo lettere A–Z, accenti rimossi">Filtered: letters only</span>
+            <span class="cesare-badge">Filtered: letters only</span>
             <span id="ces-totals" aria-live="polite">Total letters: …</span>
           </div>
         </section>
@@ -326,7 +265,15 @@
         <!-- Grafici -->
         <section class="cesare-card" aria-labelledby="hist-h3">
           <h3 id="hist-h3">Histograms</h3>
-          <p class="small"><strong>Explanation:</strong> Left chart: frequencies in the ciphertext. Right chart: ciphertext shifted by <span class="cesare-mono">12</span> (not the decryption step).</p>
+          <p class="small"><strong>Explanation:</strong> Left chart: frequencies in the ciphertext. Right chart: ciphertext shifted by <span class="cesare-mono" id="ces-hist-label-2">12</span> (not the decryption step). Use the slider to choose the reference shift.</p>
+
+          <!-- Slider: scegli lo shift del secondo istogramma -->
+          <div class="cesare-slider" style="margin:8px 0 12px;">
+            <label for="ces-hist-shift">Histogram shift</label>
+            <input id="ces-hist-shift" type="range" min="0" max="25" step="1" value="12" />
+            <span class="cesare-mono" id="ces-hist-shift-value">12</span>
+          </div>
+
           <div class="cesare-charts">
             <div class="cesare-chart" aria-label="Ciphertext histogram">
               <div class="cesare-chart-head">
@@ -339,9 +286,9 @@
               <div class="cesare-labels" id="ces-labels-original"></div>
             </div>
 
-            <div class="cesare-chart" aria-label="Ciphertext shifted by 12">
+            <div class="cesare-chart" aria-label="Ciphertext shifted by chosen amount">
               <div class="cesare-chart-head">
-                <div class="cesare-title">Ciphertext shifted by 12 (reference)</div>
+                <div class="cesare-title">Ciphertext shifted by <span class="cesare-mono" id="ces-hist-title-shift">12</span> (reference)</div>
                 <div class="cesare-sub" id="ces-sub-caesar"></div>
               </div>
               <div class="cesare-axis">
@@ -403,8 +350,7 @@
   </main>
 
   <script>
-    // ================== Config ==================
-    const CES_SHIFT = 12; // reference shift for the second histogram
+    // =============== Config & constants ===============
     const A_CODE = 'A'.charCodeAt(0);
     const LETTERS = Array.from({length:26}, (_,i)=> String.fromCharCode(A_CODE+i));
 
@@ -416,13 +362,9 @@
     };
     const EN_PROPS = LETTERS.map(l => EN_FREQ[l]/100);
 
-    // ================== Utils ==================
-    function stripDiacritics(s){
-      return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    }
-    function cesOnlyAZ(s){
-      return stripDiacritics(s).toUpperCase().replace(/[^A-Z]/g, '');
-    }
+    // ====================== Utils ======================
+    function stripDiacritics(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function cesOnlyAZ(s){ return stripDiacritics(s).toUpperCase().replace(/[^A-Z]/g, ''); }
     function cesCount(s){
       const counts = new Array(26).fill(0);
       for(const ch of s){
@@ -433,8 +375,9 @@
     }
     function cesRotateCounts(counts, shift){
       const out = new Array(26).fill(0);
+      const s = ((shift % 26) + 26) % 26;
       for(let i=0;i<26;i++){
-        const j = (i + shift) % 26;
+        const j = (i + s) % 26;
         out[j] = counts[i] + (out[j]||0);
       }
       return out;
@@ -453,7 +396,7 @@
       });
     }
 
-    // Chi-squared score between observed counts and expected proportions
+    // Chi-squared score
     function chiSquared(observedCounts, total, expectedProps){
       let score = 0;
       for(let i=0;i<26;i++){
@@ -463,13 +406,10 @@
       }
       return score;
     }
-
-    // Rank shifts by chi^2: lower is better
     function rankShiftsByChi2(cipherCounts, total){
       const results = [];
       for(let s=0; s<26; s++){
-        // decoding by s equals rotating counts backward by s -> forward by (26 - s)
-        const decodedCounts = cesRotateCounts(cipherCounts, (26 - s) % 26);
+        const decodedCounts = cesRotateCounts(cipherCounts, (26 - s) % 26); // rotate back by s
         const score = chiSquared(decodedCounts, total, EN_PROPS);
         results.push({ shift: s, score });
       }
@@ -498,7 +438,6 @@
         labelsEl.appendChild(lab);
       });
     }
-
     function cesRenderCounts(barsEl, counts){
       const maxVal = Math.max(1, cesMax(counts));
       const bars = barsEl.querySelectorAll('.cesare-bar');
@@ -512,6 +451,12 @@
       });
     }
 
+    // ================ Charts & Decoder ================
+    function getHistogramShift(){
+      const el = document.getElementById('ces-hist-shift');
+      return el ? parseInt(el.value, 10) : 12;
+    }
+
     function updateCharts(cleanAZ){
       const counts = cesCount(cleanAZ);
       const totals = cesSum(counts);
@@ -520,7 +465,8 @@
       cesRenderCounts(document.getElementById('ces-bars-original'), counts);
       document.getElementById('ces-sub-original').textContent = totals ? `max: ${cesMax(counts)}` : 'no data';
 
-      const shifted = cesRotateCounts(counts, CES_SHIFT);
+      const histShift = getHistogramShift();
+      const shifted = cesRotateCounts(counts, histShift);
       cesRenderCounts(document.getElementById('ces-bars-caesar'), shifted);
       document.getElementById('ces-sub-caesar').textContent = totals ? `max: ${cesMax(shifted)}` : 'no data';
 
@@ -537,7 +483,6 @@
       const slider = document.getElementById('ces-manual-shift');
       const sliderLbl = document.getElementById('ces-manual-label');
 
-      // Sample size note
       if(totals < 40){ sampleNote.textContent = 'Warning: small sample size; the guess may be unreliable.'; }
       else { sampleNote.textContent = ''; }
 
@@ -555,7 +500,6 @@
       autoShiftLabel.textContent = String(best.shift);
       bestNote.textContent = `best chi² = ${best.score.toFixed(2)}`;
 
-      // Table: top 5
       const top = ranks.slice(0, 5);
       tbody.innerHTML = top.map(r=>{
         const prev = caesarDecodeText(cipherText, r.shift).replace(/\s+/g,' ').slice(0, 100);
@@ -567,10 +511,8 @@
         </tr>`;
       }).join('');
 
-      // Auto decoded
       autoOut.value = caesarDecodeText(cipherText, best.shift);
 
-      // Manual defaults to best
       slider.value = String(best.shift);
       sliderLbl.textContent = String(best.shift);
       manualOut.value = caesarDecodeText(cipherText, best.shift);
@@ -582,8 +524,13 @@
       const {counts, totals} = updateCharts(cleanAZ);
       updateDecoder(rawCipher, cesCount(cleanAZ), totals);
     }
+    function cesUpdateChartsOnly(){
+      const rawCipher = document.getElementById('ces-text').value || '';
+      const cleanAZ = cesOnlyAZ(rawCipher);
+      updateCharts(cleanAZ);
+    }
 
-    // ================== Init ==================
+    // ======================= Init =======================
     (function init(){
       cesCreateSkeleton(
         document.getElementById('ces-bars-original'),
@@ -596,8 +543,31 @@
         true
       );
 
+      // Sync initial labels
+      const histSlider = document.getElementById('ces-hist-shift');
+      const histValue  = document.getElementById('ces-hist-shift-value');
+      const histLabel1 = document.getElementById('ces-hist-label');
+      const histLabel2 = document.getElementById('ces-hist-label-2');
+      const histTitle  = document.getElementById('ces-hist-title-shift');
+
+      function syncHistLabels(v){
+        histValue.textContent = v;
+        histLabel1.textContent = v;
+        histLabel2.textContent = v;
+        histTitle.textContent  = v;
+      }
+      syncHistLabels(histSlider.value);
+
+      // Events
       document.getElementById('ces-text').addEventListener('input', cesUpdateAll);
 
+      // Slider: histogram shift (aggiorna solo i grafici)
+      histSlider.addEventListener('input', ()=>{
+        syncHistLabels(histSlider.value);
+        cesUpdateChartsOnly();
+      });
+
+      // Slider: manual decryption
       const slider = document.getElementById('ces-manual-shift');
       const sliderLbl = document.getElementById('ces-manual-label');
       const manualOut = document.getElementById('ces-manual-out');
