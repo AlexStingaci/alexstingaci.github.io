@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IV — Law of Large Numbers: trajectories & final-slice histogram</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff; --panel:#f8fafc;
+    --accent:#2563eb; --accent-2:#60a5fa; --grid:#e5e7eb; --p-line:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; color:var(--ink); background:var(--bg);
+       font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.6;}
+  .page{max-width:1100px; margin:32px auto 64px; padding:0 16px;}
+  header h1{margin:0 0 6px; font-size:clamp(20px,3vw,28px);}
+  header p{margin:0; color:var(--muted);}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .small{color:var(--muted); font-size:13px;}
+  label span{display:block; font-size:12px; color:var(--muted); margin-bottom:4px;}
+  input[type="number"], input[type="text"]{
+    border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff; width:120px;
+    font: 14px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  button{border:1px solid var(--accent); background:var(--accent); color:#fff; padding:8px 12px; border-radius:10px; font-weight:600; cursor:pointer;}
+  button.ghost{ background:#fff; color:var(--accent); }
+  .pill{display:inline-flex; gap:8px; align-items:center; background:#fff; border:1px solid var(--line); padding:6px 10px; border-radius:999px;}
+
+  .grid{
+    display:grid; grid-template-columns: 3fr 1fr; gap:14px; align-items:stretch; margin-top:12px;
+  }
+  @media (max-width:900px){ .grid{ grid-template-columns: 1fr; } }
+
+  .canvas-wrap{position:relative; background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px;}
+  canvas{display:block; width:100%; height:400px; border-radius:8px; background:#fff;}
+  .legend{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px;}
+  .swatch{width:14px; height:14px; border-radius:3px; display:inline-block;}
+  .swatch.p{ background:var(--p-line); }
+  .swatch.traj{ background:var(--accent);}
+  .swatch.hist{ background:var(--accent-2); }
+  .swatch.curve{ background:var(--p-line); }
+
+  .side{display:flex; flex-direction:column; gap:10px;}
+  .side-header{display:flex; justify-content:space-between; align-items:baseline;}
+  .vbar-annot{display:flex; justify-content:space-between; font-size:12px; color:var(--muted);}
+  .caption{font-size:12px; color:var(--muted); margin-top:6px;}
+  .note{margin-top:10px;}
+
+  .section-title{margin:18px 0 8px; font-size:18px;}
+  .kpi{display:flex; gap:10px; flex-wrap:wrap;}
+  .kpi .pill{font-size:13px;}
+</style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Law of Large Numbers (LLN): Many trajectories and the final-slice histogram</h1>
+      <p>We generate <span class="mono">m</span> independent trajectories of the running relative frequency
+         <span class="mono">f_t = S_t/t</span> for <span class="mono">t=1..n</span>, where <span class="mono">S_t = \sum_{i=1}^t X_i</span> with <span class="mono">X_i \sim \mathrm{Bernoulli}(p)</span>.
+         The panel on the right shows a vertical histogram of the **final** relative frequencies <span class="mono">f(n)</span> across the <span class="mono">m</span> runs, which concentrates around <span class="mono">p</span> as <span class="mono">n</span> grows.</p>
+    </header>
+
+    <!-- Controls -->
+    <section class="card">
+      <div class="row">
+        <label>
+          <span>Success probability p ∈ (0,1)</span>
+          <input id="p" type="number" step="0.01" min="0.01" max="0.99" value="0.35"/>
+        </label>
+        <label>
+          <span>n (trials per trajectory)</span>
+          <input id="n" type="number" step="50" min="50" max="5000" value="1000"/>
+        </label>
+        <label>
+          <span>m (number of trajectories)</span>
+          <input id="m" type="number" step="10" min="5" max="400" value="100"/>
+        </label>
+        <label>
+          <span>Random seed</span>
+          <input id="seed" type="text" value="12345"/>
+        </label>
+        <button id="btn-generate" class="ghost">Regenerate data</button>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <span class="pill">p = <span id="p-label" class="mono">0.35</span></span>
+        <span class="pill">m = <span id="m-label" class="mono">100</span></span>
+        <span class="pill">n = <span id="n-label" class="mono">1000</span></span>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="grid">
+      <!-- Trajectories canvas -->
+      <div class="canvas-wrap">
+        <canvas id="traj"></canvas>
+        <div class="legend">
+          <span><span class="swatch traj"></span> trajectories f(t)</span>
+          <span><span class="swatch p"></span> reference p</span>
+        </div>
+        <div class="caption">Main chart: each line shows one running relative frequency <span class="mono">f_t = S_t/t</span>. As <span class="mono">t</span> increases, paths typically stabilize near <span class="mono">p</span> (LLN).</div>
+      </div>
+
+      <!-- Right vertical histogram (final slice) -->
+      <div class="side">
+        <div class="side-header">
+          <div><strong>Histogram of f(n)</strong></div>
+          <div class="small">vertical panel, final time n</div>
+        </div>
+        <canvas id="hist" style="height:400px;"></canvas>
+        <div class="vbar-annot">
+          <span class="small">0</span>
+          <span class="small mono">f(n)</span>
+          <span class="small">1</span>
+        </div>
+        <div class="legend">
+          <span><span class="swatch hist"></span> counts</span>
+          <span><span class="swatch curve"></span> Normal CLT overlay</span>
+          <span><span class="swatch p"></span> p</span>
+        </div>
+        <div class="kpi">
+          <span class="pill">mean f(n): <span id="mean-fn" class="mono">—</span></span>
+          <span class="pill">sd f(n): <span id="sd-fn" class="mono">—</span></span>
+          <span class="pill">theoretical sd ≈ <span id="sd-theo" class="mono">—</span></span>
+        </div>
+        <div class="caption">At fixed <span class="mono">n</span>, <span class="mono">f(n)</span> is approximately <span class="mono">N(p, p(1−p)/n)</span> by the CLT (red curve). As <span class="mono">n</span> grows, the width shrinks like <span class="mono">√(p(1−p)/n)</span>.</div>
+      </div>
+    </section>
+
+    <!-- Deep Explanation -->
+    <section class="card note">
+      <h2 class="section-title">Deep Explanation: Logic, Distribution, and Complexity</h2>
+
+      <h3 style="margin:8px 0 6px;">Model & Notation</h3>
+      <p class="small">We conduct <span class="mono">m</span> independent experiments. In each, we run <span class="mono">n</span> Bernoulli trials with success probability <span class="mono">p</span>. For trajectory <span class="mono">j</span>, we observe i.i.d. <span class="mono">X_{j,1},…,X_{j,n} \sim \mathrm{Bernoulli}(p)</span>, define cumulative successes <span class="mono">S_{j,t} = \sum_{i=1}^t X_{j,i}</span>, and the running relative frequency <span class="mono">f_{j}(t) = S_{j,t}/t</span>.</p>
+
+      <h3 style="margin:8px 0 6px;">What the LLN says</h3>
+      <ul class="small">
+        <li><strong>Weak LLN:</strong> for any <span class="mono">ε &gt; 0</span>, <span class="mono">P(|f_{j}(n) − p| &gt; ε) → 0</span> as <span class="mono">n → ∞</span>. Thus the distribution of <span class="mono">f_{j}(n)</span> collapses around <span class="mono">p</span>.</li>
+        <li><strong>Strong LLN:</strong> <span class="mono">f_{j}(n) → p</span> almost surely as <span class="mono">n → ∞</span>. That is, with probability 1, each trajectory converges to <span class="mono">p</span>.</li>
+      </ul>
+
+      <h3 style="margin:8px 0 6px;">Why the right-hand histogram concentrates</h3>
+      <p class="small">Fix <span class="mono">n</span>. For a single trajectory, <span class="mono">S_n ∼ \mathrm{Binomial}(n,p)</span>. Therefore <span class="mono">f(n)=S_n/n</span> has mean <span class="mono">p</span> and variance <span class="mono">p(1−p)/n</span>. By the CLT, <span class="mono">f(n)</span> is close to <span class="mono">N(p, p(1−p)/n)</span> for large <span class="mono">n</span>. The histogram shows the empirical distribution of <span class="mono">m</span> i.i.d. copies of <span class="mono">f(n)</span>, so it narrows at rate <span class="mono">1/√n</span> and centers at <span class="mono">p</span>.</p>
+
+      <h3 style="margin:8px 0 6px;">Concentration beyond the CLT</h3>
+      <p class="small">Chebyshev’s inequality gives <span class="mono">P(|f(n)−p| ≥ ε) ≤ Var(f(n))/ε² = p(1−p)/(n ε²)</span>. Sharper bounds like Hoeffding/Chernoff yield exponentially small tails in <span class="mono">n</span>, explaining the rapid concentration in practice.</p>
+
+      <h3 style="margin:8px 0 6px;">Role of m vs n</h3>
+      <ul class="small">
+        <li><strong>n (per-trajectory length):</strong> controls the <em>width</em> of the distribution via <span class="mono">√(p(1−p)/n)</span>. Larger <span class="mono">n</span> → tighter histogram.</li>
+        <li><strong>m (number of trajectories):</strong> controls the <em>sampling noise</em> of the histogram itself. Larger <span class="mono">m</span> gives a smoother, more stable empirical distribution around the theoretical curve.</li>
+      </ul>
+
+      <h3 style="margin:8px 0 6px;">Implementation & Complexity</h3>
+      <ul class="small">
+        <li><strong>Generation:</strong> we precompute a cumulative-success table of shape <span class="mono">m × (n+1)</span>. Cost is <span class="mono">O(m·n)</span> Bernoulli draws and additions; memory is ~<span class="mono">m·(n+1)</span> integers.</li>
+        <li><strong>Rendering:</strong> plotting polylines is linear in the on-screen points (here, essentially <span class="mono">O(m·n)</span> once per regeneration). The histogram is <span class="mono">O(m)</span> to bin the <span class="mono">f(n)</span> values.</li>
+        <li><strong>Determinism:</strong> we use a seedable PRNG (Mulberry32); identical inputs reproduce identical trajectories.</li>
+        <li><strong>CLT overlay:</strong> the red curve draws expected bin counts using the Normal CDF with mean <span class="mono">p</span> and sd <span class="mono">√(p(1−p)/n)</span>.</li>
+      </ul>
+
+      <h3 style="margin:8px 0 6px;">Caveats</h3>
+      <ul class="small">
+        <li>The CLT is an approximation; for small <span class="mono">n</span> or extreme <span class="mono">p</span>, the Normal curve may deviate from the Binomial-scaled histogram.</li>
+        <li>Trajectories are independent across <span class="mono">j</span>. Dependence would slow concentration and break the classical LLN assumptions.</li>
+      </ul>
+    </section>
+  </main>
+
+<script>
+/* ---------- PRNG (deterministic from seed) ---------- */
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s){
+  let h = 1779033703 ^ s.length;
+  for(let i=0;i<s.length;i++){
+    h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return (h>>>0);
+}
+
+/* ---------- State ---------- */
+const ui = {
+  p: document.getElementById('p'),
+  n: document.getElementById('n'),
+  m: document.getElementById('m'),
+  seed: document.getElementById('seed'),
+  gen: document.getElementById('btn-generate'),
+  pLabel: document.getElementById('p-label'),
+  mLabel: document.getElementById('m-label'),
+  nLabel: document.getElementById('n-label'),
+  traj: document.getElementById('traj'),
+  hist: document.getElementById('hist'),
+  meanFn: document.getElementById('mean-fn'),
+  sdFn: document.getElementById('sd-fn'),
+  sdTheo: document.getElementById('sd-theo'),
+};
+
+let data = {
+  p: 0.35, n: 1000, m: 100, seed: '12345',
+  cum: [], // Array<Uint16Array | Uint32Array> length m, each of length n+1
+};
+
+/* ---------- Helpers ---------- */
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function makeCumTable(p, m, n, seedStr){
+  const rng = mulberry32(hashStr(seedStr));
+  const arr = new Array(m);
+  const needs32 = n >= 65500; // safeguard
+  for(let j=0;j<m;j++){
+    const row = needs32 ? new Uint32Array(n+1) : new Uint16Array(n+1);
+    let s = 0;
+    row[0] = 0;
+    for(let t=1;t<=n;t++){
+      if(rng() < p) s++;
+      row[t] = s;
+    }
+    arr[j] = row;
+  }
+  return arr;
+}
+function dpiCanvas(canvas, cssW, cssH){
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.floor(cssW*dpr);
+  canvas.height = Math.floor(cssH*dpr);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return ctx;
+}
+function getSize(el){ const r = el.getBoundingClientRect(); return {w: Math.max(100, r.width|0), h: Math.max(100, r.height|0)}; }
+
+/* ---------- Math: Normal CDF for CLT overlay ---------- */
+function erf(x){
+  // Abramowitz–Stegun 7.1.26
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const sign = x<0 ? -1 : 1;
+  const z = Math.abs(x);
+  const t = 1.0/(1.0+p*z);
+  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-z*z);
+  return sign*y;
+}
+function normCdf(z){ return 0.5*(1+erf(z/Math.SQRT2)); }
+
+/* ---------- Rendering: trajectories ---------- */
+function drawTrajectories(){
+  const {w, h} = getSize(ui.traj);
+  const ctx = dpiCanvas(ui.traj, w, h);
+
+  const pad = {l:40, r:20, t:14, b:28};
+  const W = w - pad.l - pad.r, H = h - pad.t - pad.b;
+
+  // axes scales
+  const n = data.n, p = data.p;
+  const x = (t)=> pad.l + (t-1) * (W / Math.max(1, n-1));
+  const y = (val)=> pad.t + (1 - val) * H;
+
+  // bg
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+
+  // gridlines (y: 0..1 step .1)
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for(let k=0;k<=10;k++){
+    const yy = y(k/10);
+    ctx.moveTo(pad.l, yy); ctx.lineTo(pad.l+W, yy);
+  }
+  ctx.stroke();
+
+  // axes
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t+H);
+  ctx.moveTo(pad.l, pad.t+H); ctx.lineTo(pad.l+W, pad.t+H);
+  ctx.stroke();
+
+  // y labels
+  ctx.fillStyle = '#475569'; ctx.font = '12px system-ui, -apple-system, Segoe UI';
+  for(let k=0;k<=10;k++){
+    const yy = y(k/10);
+    ctx.fillText((k/10).toFixed(1), 8, yy+4);
+  }
+  // x labels: 1, n/2, n
+  ctx.textAlign = 'center';
+  ctx.fillText('1', pad.l, pad.t+H+18);
+  ctx.fillText(String(Math.max(1, Math.round(n/2))), pad.l + W/2, pad.t+H+18);
+  ctx.fillText(String(n), pad.l + W, pad.t+H+18);
+  ctx.textAlign = 'left';
+
+  // reference p line
+  ctx.strokeStyle = 'var(--p-line)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.l, y(p)); ctx.lineTo(pad.l+W, y(p)); ctx.stroke();
+
+  // trajectories
+  ctx.strokeStyle = 'rgba(37,99,235,0.55)'; ctx.lineWidth = 1;
+  const m = data.m, cum = data.cum;
+  for(let j=0;j<m;j++){
+    ctx.beginPath();
+    for(let t=1;t<=n;t++){
+      const ft = cum[j][t] / t;
+      const xx = x(t), yy = y(ft);
+      if(t===1) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+    }
+    ctx.stroke();
+  }
+}
+
+/* ---------- Rendering: vertical histogram at final n ---------- */
+function drawHistogram(){
+  const {w, h} = getSize(ui.hist);
+  const ctx = dpiCanvas(ui.hist, w, h);
+
+  const pad = {l:36, r:14, t:10, b:24};
+  const W = w - pad.l - pad.r, H = h - pad.t - pad.b;
+
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+
+  // axes box
+  ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(pad.l, pad.t, W, H);
+
+  const n = data.n, m = data.m, p = data.p;
+
+  // collect f(n) across trajectories
+  const arr = new Float32Array(m);
+  for(let j=0;j<m;j++) arr[j] = data.cum[j][n]/n;
+
+  // bins
+  const bins = Math.min(30, Math.max(8, Math.ceil(Math.sqrt(m))));
+  const counts = new Array(bins).fill(0);
+  const binLo = (b)=> b/bins;
+  const binHi = (b)=> (b+1)/bins;
+  for(let i=0;i<m;i++){
+    let b = Math.floor(arr[i]*bins);
+    if(b<0) b=0; if(b>=bins) b=bins-1;
+    counts[b]++;
+  }
+
+  // CLT expected counts per bin
+  const sd = Math.sqrt(p*(1-p)/n);
+  const exp = new Array(bins).fill(0);
+  if(sd>0){
+    for(let b=0;b<bins;b++){
+      const lo=binLo(b), hi=binHi(b);
+      const zlo = (lo - p)/sd, zhi = (hi - p)/sd;
+      exp[b] = m*(normCdf(zhi)-normCdf(zlo));
+    }
+  }
+
+  const maxC = Math.max(1, ...counts, ...exp);
+
+  // scales
+  const x = (c)=> pad.l + (c / maxC) * W;     // horizontal length by count
+  const y = (b)=> pad.t + H - (b / bins) * H; // vertical position
+  const barH = H / bins - 2;
+
+  // background gridlines (vertical)
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.beginPath();
+  for(let k=0;k<=4;k++){
+    const xx = pad.l + (k/4)*W; ctx.moveTo(xx, pad.t); ctx.lineTo(xx, pad.t+H);
+  }
+  ctx.stroke();
+
+  // bars
+  ctx.fillStyle = 'var(--accent-2)';
+  for(let b=0;b<bins;b++){
+    const c = counts[b];
+    const yy = y(b+1) + 1;
+    const xx = pad.l;
+    const wBar = Math.max(0.5, (c / maxC) * W);
+    ctx.fillRect(xx, yy, wBar, barH);
+  }
+
+  // CLT overlay as a smooth polyline (draw at bin centers)
+  if(sd>0){
+    ctx.strokeStyle = 'var(--p-line)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for(let b=0;b<bins;b++){
+      const center = (binLo(b)+binHi(b))/2;
+      const yy = pad.t + H - center*H;
+      const ex = exp[b];
+      const xx = x(ex);
+      if(b===0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+    }
+    ctx.stroke();
+  }
+
+  // reference p line
+  const pY = pad.t + H - p*H;
+  ctx.strokeStyle = 'var(--p-line)'; ctx.setLineDash([6,4]); ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.l, pY); ctx.lineTo(pad.l+W, pY); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // x tick labels for counts
+  ctx.fillStyle = '#475569'; ctx.font = '12px system-ui, -apple-system, Segoe UI';
+  ctx.textAlign='right';
+  for(let k=0;k<=4;k++){
+    const c = Math.round((k/4)*maxC);
+    const xx = pad.l + (k/4)*W;
+    ctx.fillText(String(c), xx, pad.t-4);
+  }
+
+  // KPIs
+  const mean = arr.reduce((a,b)=>a+b,0)/m;
+  const sdEmp = Math.sqrt(arr.reduce((a,b)=>a+b*b,0)/m - mean*mean);
+  ui.meanFn.textContent = mean.toFixed(4);
+  ui.sdFn.textContent = sdEmp.toFixed(4);
+  ui.sdTheo.textContent = sd.toFixed(4);
+}
+
+/* ---------- Regenerate + events ---------- */
+function regen(){
+  const p = clamp(Number(ui.p.value), 0.01, 0.99);
+  const n = clamp(parseInt(ui.n.value||1000,10), 50, 5000);
+  const m = clamp(parseInt(ui.m.value||100,10), 5, 400);
+  const seed = String(ui.seed.value||'12345');
+
+  ui.p.value = p; ui.n.value = n; ui.m.value = m; ui.seed.value = seed;
+  ui.pLabel.textContent = p.toFixed(2);
+  ui.nLabel.textContent = String(n);
+  ui.mLabel.textContent = String(m);
+
+  data = {p, n, m, seed, cum: makeCumTable(p, m, n, seed)};
+  drawTrajectories();
+  drawHistogram();
+}
+
+ui.gen.addEventListener('click', regen);
+['p','n','m','seed'].forEach(id=>{
+  ui[id].addEventListener('change', regen);
+});
+
+// resize handling
+window.addEventListener('resize', ()=>{ drawTrajectories(); drawHistogram(); });
+
+/* ---------- Init ---------- */
+regen();
+</script>
+</body>
+</html>

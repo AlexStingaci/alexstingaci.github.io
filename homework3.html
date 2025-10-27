@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Homework III — RSA on Letters (toy, offset) + Frequency Attack</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff;
+    --panel:#f8fafc; --bar:#94a3b8; --bar2:#60a5fa;
+    --accent:#2563eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--ink); background:var(--bg); line-height:1.6;}
+  .page{max-width:1100px; margin:32px auto 80px; padding:0 16px;}
+  header h1{margin:0 0 6px; font-size:clamp(22px,3vw,28px);}
+  header p{margin:0; color:var(--muted);}
+
+  .grid{display:grid; grid-template-columns: 1fr 1fr; gap:20px;}
+  @media (max-width:980px){ .grid{ grid-template-columns:1fr; } }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }
+  .card h2{ margin:0 0 10px; font-size:18px; }
+  .small{ color:var(--muted); font-size:13px; margin-top:8px }
+
+  .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .badge{ display:inline-flex; align-items:center; gap:6px; background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; padding:4px 8px; border-radius:999px; font-size:12px; }
+  .mono{ font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace; }
+
+  input[type="number"], input[type="text"]{
+    border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:#fff;
+    font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; width:120px;
+  }
+  textarea{
+    width:100%; min-height:150px; resize:vertical; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#fff;
+    font: 14px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  button{
+    border:1px solid var(--accent); background:var(--accent); color:#fff; padding:8px 12px; border-radius:10px; font-weight:600; cursor:pointer;
+  }
+  button.ghost{ background:#fff; color:var(--accent); }
+
+  .charts{display:grid; grid-template-columns: 1fr; gap:18px; margin-top:6px;}
+  .chart{ border:1px solid var(--line); border-radius:12px; padding:12px 12px 28px; background:#fff; }
+  .chart-header{ display:flex; align-items:baseline; gap:10px; margin:0 0 10px 2px; }
+  .chart-title{ font-size:15px; font-weight:600; }
+  .chart-sub{ color:var(--muted); font-size:13px; margin-left:auto }
+
+  .axis{ position:relative; height:260px; border-left:1px solid var(--line); border-bottom:1px solid var(--line); padding:8px 0 0 8px;}
+  .bars{ position:absolute; inset:8px 0 0 8px; display:grid; align-items:end; gap:6px; }
+  .bars.az{ grid-template-columns: repeat(26, 1fr); }          /* A..Z */
+  .bars.var{ grid-auto-flow: column; grid-auto-columns: minmax(20px,1fr);} /* variable-size labels */
+  .bar{ position:relative; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; }
+  .rect{ width:100%; border-radius:6px 6px 0 0; background:var(--bar); height: var(--h,0%); transition: height .2s ease;}
+  .bar.alt .rect{ background:var(--bar2); }
+  .val{ position:absolute; bottom:calc(var(--h,0%) + 8px); transform:translateY(50%); font-size:12px; color:#0b1220; opacity:.8; user-select:none; }
+  .labels{ display:grid; gap:6px; margin-top:6px; color:#0b1220; }
+  .labels.az{ grid-template-columns: repeat(26, 1fr); }
+  .labels.var{ grid-auto-flow: column; grid-auto-columns: minmax(20px,1fr); }
+  .labels span{ font-size:12px; text-align:center; user-select:none; }
+
+  .table{ width:100%; border-collapse:collapse; font-size:13px; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .table thead th{ background:#f6f7fb; text-align:left; padding:8px; border-bottom:1px solid var(--line); }
+  .table td{ padding:8px; border-top:1px solid var(--line); vertical-align:top; }
+  .preview{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 420px; }
+
+  .slider{ display:flex; align-items:center; gap:10px; }
+  .slider input[type="range"]{ width:220px; }
+
+  .pill{ display:inline-flex; gap:8px; align-items:center; background:#fff; border:1px solid var(--line); padding:8px 10px; border-radius:999px; }
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <h1>Homework III — RSA on Letters</h1>
+  </header>
+  <section class="card" style="margin-top:20px;">
+    <h2>Methodology, Complexity & Design Notes</h2>
+
+    <h3 style="margin:10px 0 6px;">Pipeline overview</h3>
+    <ul class="small">
+      <li><strong>Encoding:</strong> map <span class="mono">A..Z → 2..27</span> (offset = 2) to avoid trivial bases 0 and 1.</li>
+      <li><strong>Key setup:</strong> choose primes <span class="mono">p,q</span>; compute <span class="mono">n=pq</span>, <span class="mono">φ(n)=(p−1)(q−1)</span>, <span class="mono">λ(n)=lcm(p−1,q−1)</span>; pick <span class="mono">e</span> with <span class="mono">gcd(e,λ)=1</span>; compute <span class="mono">d ≡ e⁻¹ (mod λ)</span>.</li>
+      <li><strong>Encrypt:</strong> for each letter <span class="mono">m∈{2..27}</span>, compute <span class="mono">c = m^e mod n</span>.</li>
+      <li><strong>Decrypt:</strong> for each token <span class="mono">c</span>, compute <span class="mono">m = c^d mod n</span>, then map back <span class="mono">m→A..Z</span> using the offset.</li>
+      <li><strong>Decode (no key):</strong> build a residue frequency table; rank-match residues to English letter frequencies; improve the assignment with hill-climbing swaps that minimize χ².</li>
+    </ul>
+
+    <h3 style="margin:10px 0 6px;">Why the offset matters</h3>
+    <p class="small">With the classic <span class="mono">A→0</span> encoding, the ciphertext of <span class="mono">A</span> would always be <span class="mono">0</span> (since <span class="mono">0^e≡0</span>), which leaks information immediately. Using <strong>offset = 2</strong> eliminates bases 0 and 1 and keeps residues non-trivial. We require <span class="mono">n ≥ 28</span> so that all encoded letters fit in <span class="mono">[0..n−1]</span>.</p>
+
+    <h3 style="margin:10px 0 6px;">Computational cost (asymptotic)</h3>
+    <ul class="small">
+      <li><strong>Key computation.</strong> <em>Input:</em> tiny primes. Extended Euclid for <span class="mono">d</span> is <span class="mono">O(log λ(n))</span>. For real-size keys, big-int multiplication dominates, but here it is effectively constant-time.</li>
+      <li><strong>Modular exponentiation.</strong> We use repeated squaring:
+        <ul>
+          <li><strong>Encrypt L letters:</strong> <span class="mono">O(L · log e)</span> modular multiplies.</li>
+          <li><strong>Decrypt T tokens:</strong> <span class="mono">O(T · log d)</span> modular multiplies.</li>
+        </ul>
+        Each multiply on k-bit numbers is <span class="mono">O(k²)</span> (grade-school). With the toy modulus, k is tiny.
+      </li>
+      <li><strong>Histogramming.</strong> Counting letters is <span class="mono">O(L)</span>; counting residues is <span class="mono">O(T)</span>.</li>
+      <li><strong>Frequency attack.</strong>
+        <ul>
+          <li>Build frequency vector: <span class="mono">O(T)</span>.</li>
+          <li>Sort residues by count: <span class="mono">O(R log R)</span>, where <span class="mono">R</span> = distinct residues (≤ 26 for typical text).</li>
+          <li>Hill-climb via pairwise swaps: naive evaluation is <span class="mono">O(I · R³)</span> (I = iterations). With <span class="mono">R ≤ 26</span> this is small in practice (e.g., <span class="mono">≤ 26³ = 17,576</span> score evals per iteration). Convergence usually occurs in a handful of iterations.</li>
+        </ul>
+      </li>
+      <li><strong>Space.</strong> <span class="mono">O(L + T + R)</span> for the strings, tokens, and frequency tables; charts store <span class="mono">O(26)</span> and <span class="mono">O(R)</span> bars.</li>
+    </ul>
+
+    <h3 style="margin:10px 0 6px;">Frequency-attack objective</h3>
+    <p class="small">We score a residue→letter assignment with χ² against English monogram frequencies:
+      <span class="mono">χ² = Σ_i (obs_i − p_i)² / p_i</span>, where <span class="mono">obs_i</span> is the observed frequency for the residue mapped to letter <span class="mono">i</span>, and <span class="mono">p_i</span> is the expected English frequency. Lower is better.</p>
+
+    <h3 style="margin:10px 0 6px;">Pseudocode (decoding without the key)</h3>
+    <pre class="small" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;overflow:auto;"><code>// tokens: ciphertext integers
+// EN_ORDER: "ETAOINSHRDLCUMWFGYPBVKJXQZ"
+build freq map of tokens → residues[], counts[], freqs[]
+sort residues by descending counts
+mapping[i] = EN_ORDER[i]               // rank-match initialization
+repeat
+  improved = false
+  for i = 0..R-1
+    for j = i+1..R-1
+      swap(mapping[i], mapping[j])
+      if chiSquared(mapping) decreases:
+         keep swap; improved = true
+      else
+         undo swap
+until !improved or iterations limit
+return mapping</code></pre>
+
+    <h3 style="margin:10px 0 6px;">Correctness & caveats</h3>
+    <ul class="small">
+      <li><strong>Permutation property.</strong> With <span class="mono">gcd(e,λ(n))=1</span>, exponentiation <span class="mono">x↦x^e (mod n)</span> is a bijection on <span class="mono">ℤ_n</span>. Distinct letters (encoded as 2..27) yield distinct residues.</li>
+      <li><strong>Determinism leaks structure.</strong> Per-letter, no-padding RSA preserves unigram frequencies (up to permutation), so frequency analysis is effective. Real RSA uses large moduli and randomized padding (e.g., OAEP), defeating such attacks.</li>
+      <li><strong>Language model.</strong> We use <em>English monogram</em> frequencies. Very short texts, non-English or stylized language can mislead the χ² fit. Bigram/trigram models or simulated annealing can improve results but are overkill here.</li>
+      <li><strong>Offset choice.</strong> Offset = 2 prevents trivial 0/1 bases. Any fixed offset ≥ 2 works as long as <span class="mono">n</span> is large enough to cover the range.</li>
+    </ul>
+  </section>
+  <!-- ====== Key setup ====== -->
+  <section class="card">
+    <h2>Key setup (toy RSA)</h2>
+    <p class="small"><strong>How keys are computed.</strong> Choose small primes <span class="mono">p,q</span> ensuring <span class="mono">n=pq ≥ 28</span> (since the alphabet uses 2..27). We set <span class="mono">φ(n)=(p−1)(q−1)</span> and <span class="mono">λ(n)=lcm(p−1,q−1)</span>. Pick a public exponent <span class="mono">e</span> with <span class="mono">gcd(e,λ(n))=1</span>. Private exponent <span class="mono">d = e⁻¹ mod λ(n)</span>.</p>
+    <div class="row" style="margin-top:10px;">
+      <label>p <input id="p" type="number" min="3" step="1" value="29"></label>
+      <label>q <input id="q" type="number" min="3" step="1" value="31"></label>
+      <label>e <input id="e" type="number" min="3" step="1" value="11"></label>
+      <button id="regen" class="ghost">Apply</button>
+      <span id="key-msg" class="small"></span>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <span class="pill">n = <span id="n" class="mono">—</span></span>
+      <span class="pill">φ(n) = <span id="phi" class="mono">—</span></span>
+      <span class="pill">λ(n) = <span id="lambda" class="mono">—</span></span>
+      <span class="pill">d = <span id="d" class="mono">—</span></span>
+      <span class="pill">Alphabet offset = <span class="mono">2</span></span>
+    </div>
+  </section>
+
+  <div class="grid" style="margin-top:20px;">
+    <!-- ====== Plaintext -> Encrypt ====== -->
+    <section class="card">
+      <h2>Encrypt letters → RSA residues</h2>
+      <p class="small"><strong>Explanation.</strong> Encode letters with offset 2: <span class="mono">A..Z → 2..27</span>. Cipher for a letter <span class="mono">m</span>: <span class="mono">c = m^e mod n</span>. Ciphertext is space-separated integers.</p>
+      <textarea id="pt" placeholder="Plaintext letters (A–Z only)…">MEET ME AT THE PARK AFTER DARK</textarea>
+      <div class="row" style="margin-top:8px;">
+        <button id="btn-encrypt">Encrypt</button>
+        <span class="badge">Only letters are used; other chars are ignored for encryption.</span>
+      </div>
+      <p class="small" style="margin-top:8px;">Ciphertext (space-separated integers):</p>
+      <textarea id="ct" placeholder="Ciphertext residues will appear here…"></textarea>
+    </section>
+
+    <!-- ====== Decrypt with d OR Decode (no key) ====== -->
+    <section class="card">
+      <h2>Decrypt / Decode ciphertext</h2>
+      <p class="small"><strong>Two options.</strong> (1) Known key: <span class="mono">m = c^d mod n</span> per token, then map <span class="mono">m→letter</span> via the offset. (2) Unknown key: <strong>frequency attack</strong> (below) to guess a substitution that best matches English letter frequencies.</p>
+      <div class="row" style="margin-top:8px;">
+        <button id="btn-decrypt">Decrypt with private key</button>
+        <button id="btn-decode" class="ghost">Decode by frequency (no key)</button>
+      </div>
+      <p class="small" style="margin-top:8px;">Output:</p>
+      <textarea id="decoded" placeholder="Decryption / decoding will appear here…" readonly></textarea>
+    </section>
+  </div>
+
+  <!-- ====== Histograms ====== -->
+  <section class="card" style="margin-top:20px;">
+    <h2>Histograms</h2>
+    <p class="small"><strong>Reading the charts.</strong> Left: plaintext letters (A–Z). Right: ciphertext <em>residues</em> (integers mod n). Deterministic RSA-per-letter (no padding) is a <em>permutation</em> of symbols, so frequencies are preserved but reassigned across residues.</p>
+    <div class="charts">
+      <div class="chart" aria-label="Plaintext histogram">
+        <div class="chart-header">
+          <div class="chart-title">Plaintext letters (A–Z)</div>
+          <div class="chart-sub" id="sub-pt"></div>
+        </div>
+        <div class="axis">
+          <div class="bars az" id="bars-pt"></div>
+        </div>
+        <div class="labels az" id="labels-pt"></div>
+      </div>
+
+      <div class="chart" aria-label="Ciphertext residues">
+        <div class="chart-header">
+          <div class="chart-title">Ciphertext residues (integers mod n)</div>
+          <div class="chart-sub" id="sub-ct"></div>
+        </div>
+        <div class="axis">
+          <div class="bars var" id="bars-ct"></div>
+        </div>
+        <div class="labels var" id="labels-ct"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Frequency Attack (no key) ====== -->
+  <section class="card" style="margin-top:20px;">
+    <h2>Frequency attack (no key)</h2>
+    <p class="small"><strong>Idea.</strong> RSA-per-letter (no padding) with fixed offset remains a <em>monoalphabetic substitution</em>: map the most common residues to <span class="mono">ETAOIN…</span>, then refine with local swaps that minimize χ² vs English.</p>
+
+    <div class="row" style="margin-top:8px;">
+      <span class="badge">Assumption: English plaintext</span>
+      <span id="fa-note" class="small"></span>
+    </div>
+
+    <div style="margin-top:10px; overflow-x:auto;">
+      <table class="table" aria-label="Residue→letter mapping">
+        <thead>
+          <tr>
+            <th>Residue (mod n)</th>
+            <th>Count</th>
+            <th>Frequency</th>
+            <th>→ Guessed letter</th>
+          </tr>
+        </thead>
+        <tbody id="map-body"></tbody>
+      </table>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <span>χ² score (lower is better): <span id="chi" class="mono">—</span></span>
+      <button id="btn-apply-map" class="ghost">Apply mapping to ciphertext</button>
+    </div>
+
+    <p class="small" style="margin-top:8px;">Decoded (frequency attack):</p>
+    <textarea id="freq-decoded" readonly></textarea>
+  </section>
+
+  <!-- ====== Methodology, Complexity & Design Notes ====== -->
+
+</main>
+
+<script>
+/* ===== Config: alphabet offset ===== */
+const ENC_OFFSET = 2;           // A→2, ..., Z→27 (avoid 0/1)
+
+/* ===== Helpers ===== */
+const A = 'A'.charCodeAt(0);
+const LETTERS = Array.from({length:26}, (_,i)=> String.fromCharCode(A+i));
+const EN_FREQ = {A:8.167,B:1.492,C:2.782,D:4.253,E:12.702,F:2.228,G:2.015,H:6.094,I:6.966,J:0.153,K:0.772,L:4.025,M:2.406,N:6.749,O:7.507,P:1.929,Q:0.095,R:5.987,S:6.327,T:9.056,U:2.758,V:0.978,W:2.360,X:0.150,Y:1.974,Z:0.074};
+const EN_ORDER = "ETAOINSHRDLCUMWFGYPBVKJXQZ".split("");
+
+const gcd=(a,b)=> b?gcd(b,a%b):Math.abs(a);
+const lcm=(a,b)=> a/gcd(a,b)*b;
+function egcd(a,b){ let x=0,y=1,u=1,v=0; while(a!==0){ const q=Math.floor(b/a); [x,u]=[u,x-q*u]; [y,v]=[v,y-q*v]; [a,b]=[b-q*a,a]; } return {g:b, x:x, y:y}; }
+function modInv(a,m){ a = ((a%m)+m)%m; const {g,x}=egcd(a,m); if(g!==1) return null; return (x%m + m)%m; }
+
+function strip(text){ return text.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function onlyAZ(text){ return strip(text).toUpperCase().replace(/[^A-Z]/g,''); }
+
+/* ===== RSA core (toy) ===== */
+function modPow(base, exp, mod){
+  let r=1n, b=BigInt(base%mod), e=BigInt(exp), m=BigInt(mod);
+  while(e>0n){ if(e&1n) r=(r*b)%m; b=(b*b)%m; e>>=1n; }
+  return Number(r);
+}
+
+// With offset encoding
+function letterToNumber(ch){ return (ch.charCodeAt(0)-A) + ENC_OFFSET; }                 // 2..27
+function numberToLetter(x){ return String.fromCharCode(A + ((x - ENC_OFFSET)%26 + 26)%26); } // back to A..Z
+
+function encryptText(pt, e, n){
+  const s = onlyAZ(pt);
+  const out=[];
+  for(const ch of s){
+    const m = letterToNumber(ch);         // in [2..27]
+    out.push(modPow(m, e, n));
+  }
+  return out.join(' ');
+}
+
+function decryptTokens(ctStr, d, n){
+  const tokens = parseCipher(ctStr);
+  const letters = tokens.map(t=>{
+    if(isNaN(t)) return '';
+    const m = modPow(t, d, n);            // recovers m in [2..27]
+    return numberToLetter(m);
+  });
+  return letters.join('');
+}
+
+function parseCipher(s){
+  return (s.match(/-?\d+/g)||[]).map(x=>parseInt(x,10));
+}
+
+/* ===== Charts ===== */
+function createAZSkeleton(barsEl, labelsEl){
+  barsEl.innerHTML=''; labelsEl.innerHTML='';
+  LETTERS.forEach(letter=>{
+    const col=document.createElement('div'); col.className='bar';
+    const rect=document.createElement('div'); rect.className='rect';
+    const val=document.createElement('div'); val.className='val'; val.textContent='0';
+    col.appendChild(rect); col.appendChild(val); barsEl.appendChild(col);
+    const lab=document.createElement('span'); lab.textContent=letter; labelsEl.appendChild(lab);
+  });
+}
+function renderAZCounts(barsEl, counts){
+  const M = Math.max(1, ...counts);
+  const bars = barsEl.querySelectorAll('.bar');
+  counts.forEach((c,i)=>{
+    const bar=bars[i], rect=bar.querySelector('.rect'), val=bar.querySelector('.val');
+    rect.style.setProperty('--h', (c/M*100).toFixed(2)+'%');
+    val.textContent=c;
+  });
+}
+function countAZFromText(pt){
+  const s=onlyAZ(pt), arr=new Array(26).fill(0);
+  for(const ch of s){ arr[ch.charCodeAt(0)-A]++; }
+  return {counts:arr,total:arr.reduce((a,b)=>a+b,0)};
+}
+
+function createVarSkeleton(barsEl, labelsEl, residues){
+  barsEl.innerHTML=''; labelsEl.innerHTML='';
+  residues.forEach(()=>{
+    const col=document.createElement('div'); col.className='bar alt';
+    const rect=document.createElement('div'); rect.className='rect';
+    const val=document.createElement('div'); val.className='val'; val.textContent='0';
+    col.appendChild(rect); col.appendChild(val); barsEl.appendChild(col);
+    const lab=document.createElement('span'); lab.textContent=''; labelsEl.appendChild(lab);
+  });
+}
+function renderVarCounts(barsEl, labelsEl, residues, counts){
+  const M = Math.max(1, ...counts);
+  const bars = barsEl.querySelectorAll('.bar');
+  const labs = labelsEl.querySelectorAll('span');
+  residues.forEach((r,idx)=>{
+    const c=counts[idx], bar=bars[idx], rect=bar.querySelector('.rect'), val=bar.querySelector('.val');
+    rect.style.setProperty('--h',(c/M*100).toFixed(2)+'%');
+    val.textContent=c; labs[idx].textContent=r.toString();
+  });
+}
+
+/* ===== Frequency attack ===== */
+function freqVectorFromResidues(tokens){
+  const map = new Map();
+  tokens.forEach(t => map.set(t, (map.get(t)||0)+1));
+  const residues = Array.from(map.keys()).sort((a,b)=>a-b);
+  const counts = residues.map(r => map.get(r));
+  const total = counts.reduce((a,b)=>a+b,0);
+  const freqs = counts.map(c => c/Math.max(1,total));
+  return {residues, counts, total, freqs};
+}
+function chiScore(mapping, residues, freqs){
+  let s=0;
+  for(let i=0;i<residues.length;i++){
+    const L = mapping[i];
+    const p = EN_FREQ[L]/100;
+    const d = freqs[i]-p;
+    s += d*d/p; // Pearson-like (expected ~ p)
+  }
+  return s;
+}
+function rankInitialMapping(residues, counts){
+  const idx = counts.map((c,i)=>i).sort((i,j)=> counts[j]-counts[i]);
+  const mapping = new Array(residues.length);
+  idx.forEach((i,k)=>{ mapping[i] = "ETAOINSHRDLCUMWFGYPBVKJXQZ"[Math.min(k,25)]; });
+  return mapping;
+}
+function improveBySwaps(mapping, residues, freqs, maxIters=2000){
+  let best = mapping.slice();
+  let bestScore = chiScore(best, residues, freqs);
+  let improved = true, iter=0;
+  while(improved && iter<maxIters){
+    improved=false; iter++;
+    for(let i=0;i<best.length;i++){
+      for(let j=i+1;j<best.length;j++){
+        const trial = best.slice();
+        [trial[i], trial[j]] = [trial[j], trial[i]];
+        const sc = chiScore(trial, residues, freqs);
+        if(sc + 1e-12 < bestScore){
+          best = trial; bestScore = sc; improved = true;
+        }
+      }
+    }
+  }
+  return {mapping:best, score:bestScore};
+}
+function applyResidueMapping(tokens, residues, mapping){
+  const map = new Map();
+  residues.forEach((r,i)=> map.set(r, mapping[i]));
+  return tokens.map(t=> map.has(t) ? map.get(t) : '?').join('');
+}
+
+/* ===== Wire up UI ===== */
+const ui = {
+  p: document.getElementById('p'),
+  q: document.getElementById('q'),
+  e: document.getElementById('e'),
+  n: document.getElementById('n'),
+  phi: document.getElementById('phi'),
+  lambda: document.getElementById('lambda'),
+  d: document.getElementById('d'),
+  msg: document.getElementById('key-msg'),
+  regen: document.getElementById('regen'),
+
+  pt: document.getElementById('pt'),
+  ct: document.getElementById('ct'),
+  decoded: document.getElementById('decoded'),
+  btnEnc: document.getElementById('btn-encrypt'),
+  btnDec: document.getElementById('btn-decrypt'),
+  btnGuess: document.getElementById('btn-decode'),
+
+  barsPT: document.getElementById('bars-pt'),
+  labelsPT: document.getElementById('labels-pt'),
+  subPT: document.getElementById('sub-pt'),
+
+  barsCT: document.getElementById('bars-ct'),
+  labelsCT: document.getElementById('labels-ct'),
+  subCT: document.getElementById('sub-ct'),
+
+  faNote: document.getElementById('fa-note'),
+  mapBody: document.getElementById('map-body'),
+  chi: document.getElementById('chi'),
+  btnApplyMap: document.getElementById('btn-apply-map'),
+  freqDecoded: document.getElementById('freq-decoded'),
+};
+
+let state = {
+  p:29, q:31, e:11, n:29*31, phi:(29-1)*(31-1), lambda:lcm(28,30), d:0
+};
+
+function recomputeKey(){
+  const p = parseInt(ui.p.value,10);
+  const q = parseInt(ui.q.value,10);
+  const e = parseInt(ui.e.value,10);
+  if(!(p>2 && q>2)){ ui.msg.textContent = 'Please enter primes p, q ≥ 3.'; return false; }
+  const n = p*q;
+  const phi = (p-1)*(q-1);
+  const lambda = lcm(p-1, q-1);
+  if(n <= (ENC_OFFSET + 25)){ ui.msg.textContent = `n must be ≥ ${ENC_OFFSET+26} (here ≥ 28).`; return false; }
+  if(gcd(e, lambda) !== 1){ ui.msg.textContent = `e must be coprime to λ(n)=${lambda}. Try e=3,5,7,11,13,...`; return false; }
+  const d = modInv(e, lambda);
+  if(d === null){ ui.msg.textContent = 'No modular inverse for e modulo λ(n).'; return false; }
+  state = {p,q,e,n,phi,lambda,d};
+  ui.n.textContent = n;
+  ui.phi.textContent = phi;
+  ui.lambda.textContent = lambda;
+  ui.d.textContent = d;
+  ui.msg.textContent = 'OK';
+  return true;
+}
+
+function refreshCharts(){
+  const s = onlyAZ(ui.pt.value);
+  const arr=new Array(26).fill(0);
+  for(const ch of s){ arr[ch.charCodeAt(0)-A]++; }
+  const total = arr.reduce((a,b)=>a+b,0);
+  renderAZCounts(ui.barsPT, arr);
+  ui.subPT.textContent = `total: ${total} | max: ${Math.max(...arr)}`;
+
+  const tokens = parseCipher(ui.ct.value);
+  const F = freqVectorFromResidues(tokens);
+  createVarSkeleton(ui.barsCT, ui.labelsCT, F.residues);
+  renderVarCounts(ui.barsCT, ui.labelsCT, F.residues, F.counts);
+  ui.subCT.textContent = F.total ? `distinct residues: ${F.residues.length} | total tokens: ${F.total}` : 'no ciphertext';
+}
+
+function runFrequencyAttack(){
+  const tokens = parseCipher(ui.ct.value);
+  const F = freqVectorFromResidues(tokens);
+  if(F.total === 0){
+    ui.faNote.textContent = 'No ciphertext tokens to analyze.';
+    ui.mapBody.innerHTML = ''; ui.chi.textContent = '—'; ui.freqDecoded.value = '';
+    return {F, mapping:[], score:Infinity};
+  }
+  if(F.total < 40) ui.faNote.textContent = 'Warning: small sample size — results may be unreliable.';
+  else ui.faNote.textContent = '';
+
+  let mapping = rankInitialMapping(F.residues, F.counts);
+  const improved = improveBySwaps(mapping, F.residues, F.freqs);
+  mapping = improved.mapping;
+  const score = improved.score;
+
+  const rows = F.residues.map((r,i)=> {
+    const freqPct = (F.freqs[i]*100).toFixed(2)+'%';
+    return `<tr><td class="mono">${r}</td><td class="mono">${F.counts[i]}</td><td class="mono">${freqPct}</td><td class="mono">${mapping[i]}</td></tr>`;
+  }).join('');
+  ui.mapBody.innerHTML = rows;
+  ui.chi.textContent = score.toFixed(2);
+
+  ui.freqDecoded.value = applyResidueMapping(tokens, F.residues, mapping);
+  return {F, mapping, score};
+}
+
+/* Events */
+document.getElementById('regen').addEventListener('click', ()=>{
+  if(recomputeKey()) refreshCharts();
+});
+document.getElementById('btn-encrypt').addEventListener('click', ()=>{
+  if(!recomputeKey()) return;
+  ui.ct.value = encryptText(ui.pt.value, state.e, state.n);
+  refreshCharts();
+});
+document.getElementById('btn-decrypt').addEventListener('click', ()=>{
+  if(!recomputeKey()) return;
+  ui.decoded.value = decryptTokens(ui.ct.value, state.d, state.n);
+});
+document.getElementById('btn-decode').addEventListener('click', ()=>{
+  runFrequencyAttack();
+});
+document.getElementById('btn-apply-map').addEventListener('click', ()=>{
+  const tokens = parseCipher(ui.ct.value);
+  const F = freqVectorFromResidues(tokens);
+  if(F.total===0) return;
+  const {mapping} = runFrequencyAttack();
+  ui.decoded.value = applyResidueMapping(tokens, F.residues, mapping);
+});
+
+/* live updates */
+document.getElementById('pt').addEventListener('input', refreshCharts);
+document.getElementById('ct').addEventListener('input', refreshCharts);
+
+/* init */
+(function init(){
+  createAZSkeleton(document.getElementById('bars-pt'), document.getElementById('labels-pt'));
+  recomputeKey();
+  document.getElementById('ct').value = encryptText(document.getElementById('pt').value, state.e, state.n);
+  refreshCharts();
+})();
+</script>
+</body>
+</html>
