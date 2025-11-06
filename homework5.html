@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework 5 · Measures of Location and Dispersion</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff; --panel:#f8fafc;
+    --accent:#2563eb; --accent-2:#60a5fa; --grid:#e5e7eb; --p-line:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink); 
+    font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.6;
+  }
+  .page,.wrap{max-width:1100px; margin:32px auto 64px; padding:0 16px;}
+  header h1{margin:0 0 6px; font-size:clamp(22px,3.5vw,34px);}
+  header p.subtitle{margin:0; color:var(--muted);}
+  .crumbs{ color:var(--muted); font-size:14px; margin-bottom:6px }
+  .crumbs a{ color:inherit; text-decoration:none; }
+  .card{ border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .pill{display:inline-flex; gap:6px; align-items:center;  border:1px solid var(--line); padding:4px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+
+  /* Grid for main + sidebar */
+  .grid{display:grid; grid-template-columns: 3fr 1fr; gap:14px; align-items:start; margin-top:12px;}
+  @media (max-width:900px){ .grid{ grid-template-columns: 1fr; } }
+  .toc{ position:sticky; top:16px; align-self:start; height:max-content }
+  .toc h3{ margin:8px 0 12px; font-size:14px; color:var(--muted) }
+  .toc a{ display:block; padding:8px 10px; margin:6px 0; border-radius:12px; text-decoration:none; color:var(--ink);  border:1px solid var(--line) }
+  .toc a:hover{ outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent); }
+
+  /* Content elements used in 5 & 6 */
+  .intro{  border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .muted{ color:var(--muted) }
+  .kpi{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 }
+  .cmp-grid{ display:grid; gap:14px }
+  @media (min-width: 800px){ .cmp-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .cmp{  border:1px solid var(--line); border-radius:12px; padding:12px }
+  .cmp h4{ margin:0 0 6px; font-size:16px }
+  .callout{ border-left:4px solid var(--accent); padding:8px 12px;  border-radius:12px; border:1px solid var(--line) }
+  .warn{ border-left-color: #f59e0b }
+  .good{ border-left-color: #16a34a }
+  .small{ font-size: 13px; color: var(--muted) }
+
+  /* Tables */
+  .tbl{ width:100%; border-collapse:collapse; margin:10px 0;  border:1px solid var(--line); border-radius:12px; overflow:hidden }
+  .tbl th,.tbl td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line) }
+  .tbl th{ color:var(--muted); font-weight:600;  font-size: 0.95em; color:#111827;  padding:2px 6px; border-radius:8px }
+
+  /* Anchors */
+  a.anchor{ color:inherit; text-decoration:none; position:relative }
+  a.anchor::after{ content:"#"; color:var(--muted); position:absolute; left:-16px; opacity:0; transition:opacity .2s }
+  a.anchor:hover::after{ opacity:1 }
+
+  /* Section titles (optional) */
+  .section-title{margin:18px 0 8px; font-size:18px;}
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="crumbs">📊 <a href="#">Statistics</a> / Homework 5</div>
+      <span class="pill">Dark · card layout · centered</span>
+    </header>
+
+    <h1>Measures of Location and Dispersion</h1>
+    <p class="subtitle">Definitions, formulas, practical use-cases, advantages and limitations — written in the same visual style as previous homeworks.</p>
+
+    <div class="intro">
+      <div class="kpi">
+        <span class="pill">Location: mean · median · mode · quantiles</span>
+        <span class="pill">Dispersion: variance · SD · IQR · MAD · CV</span>
+        <span class="pill">Robustness vs. efficiency</span>
+        <span class="pill">Population (μ, σ) vs. sample (x̄, s)</span>
+      </div>
+      <p class="muted">Goal: choose <em>the right</em> summary for the problem at hand, understand how to interpret it, and know its strengths and weaknesses.</p>
+    </div>
+
+    <div class="grid">
+      <article class="card" id="content">
+        <h2 id="overview"><a class="anchor" href="#overview">Overview</a></h2>
+        <p><strong>Measures of location</strong> (central tendency) summarize the typical or central value of a distribution. <strong>Measures of dispersion</strong> quantify how spread out the data are around that location.</p>
+        <div class="two-col">
+          <div class="callout good">
+            <strong>Rule of thumb.</strong> If the distribution is skewed or contains outliers, prefer <em>robust</em> summaries (median, IQR, MAD or trimmed/winsorized means). If it is approximately symmetric with light tails, classic summaries (arithmetic mean and standard deviation) are efficient and convenient.
+          </div>
+          <div class="callout warn">
+            <strong>Population vs. sample.</strong> Distinguish parameters (μ, σ) from estimators (x̄, s). The unbiased sample variance uses <em>Bessel's correction</em>: s² = (1/(n−1))·∑(xᵢ − x̄)².
+          </div>
+        </div>
+
+        <h2 id="location"><a class="anchor" href="#location">Measures of location</a></h2>
+        <div class="cmp-grid">
+          <section class="cmp" id="mean">
+            <h4>Arithmetic mean — x̄ = (1/n)·∑xᵢ</h4>
+            <p class="muted">Balances signed deviations; uniquely minimizes the sum of squared deviations.</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> continuous measurements with random (roughly symmetric) noise; linear models; additive effects.</li>
+              <li>➕ <strong>Pros:</strong> very efficient under normal-like data; algebraically tractable; supports many inferential procedures (t‑tests, ANOVA).</li>
+              <li>⚠️ <strong>Cons:</strong> non-robust to outliers and heavy tails; can be misleading in skewed distributions.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="median">
+            <h4>Median — 50th percentile</h4>
+            <p class="muted">Divides the sample in two equal parts; minimizes the sum of absolute deviations.</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> incomes, waiting times, house prices; ordinal data.</li>
+              <li>➕ <strong>Pros:</strong> highly robust (50% breakdown point); easy to interpret.</li>
+              <li>⚠️ <strong>Cons:</strong> less efficient than the mean on normal data; not linear (mean of medians ≠ global median).</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="mode">
+            <h4>Mode</h4>
+            <p class="muted">Most frequent value. Natural for categorical or discrete data.</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> consumer choices, categories, typologies.</li>
+              <li>➕ <strong>Pros:</strong> simple; the only meaningful location for nominal variables.</li>
+              <li>⚠️ <strong>Cons:</strong> can be multi‑modal; unstable for continuous data without careful binning or density estimation.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="trimmed">
+            <h4>Trimmed / Winsorized means — x̄<sub>α</sub></h4>
+            <p class="muted">Trimmed mean drops a symmetric α fraction from the tails; winsorized replaces tails with the nearest retained values.</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> performance metrics with occasional extreme spikes; robust benchmarking.</li>
+              <li>➕ <strong>Pros:</strong> compromise between mean and median; improved robustness with good efficiency (e.g., 10% trimmed mean ≈ 95% efficiency under normality).</li>
+              <li>⚠️ <strong>Cons:</strong> requires choosing α; discards or caps tail information.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="weighted">
+            <h4>Weighted mean — x̄<sub>w</sub> = (∑wᵢxᵢ)/(∑wᵢ)</h4>
+            <p class="muted">Weights reflect sample sizes, reliability, or exposure.</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> price indices (CPI), meta‑analysis, aggregating heterogeneous groups.</li>
+              <li>➕ <strong>Pros:</strong> encodes importance or precision.</li>
+              <li>⚠️ <strong>Cons:</strong> poor weights introduce bias; always document the scheme.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="geo-harm">
+            <h4>Geometric and harmonic means</h4>
+            <p class="muted">Geometric: (∏xᵢ)<sup>1/n</sup> for xᵢ > 0 (compounded growth). Harmonic: n / ∑(1/xᵢ) for averaging rates (e.g., speed).</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> returns and growth rates (geometric); ratios and rates (harmonic).</li>
+              <li>⚠️ <strong>Notes:</strong> geometric undefined for non‑positives; harmonic sensitive to small values.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="quantiles">
+            <h4>Quantiles and percentiles</h4>
+            <p class="muted">Q<sub>p</sub> is the value below which fraction p of data fall (e.g., Q1, Q3, P90).</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> service‑level targets ("95% under 2s"), wage distributions, standardized tests.</li>
+              <li>➕ <strong>Pros:</strong> robust and interpretable; percentile‑based comparisons are intuitive.</li>
+              <li>⚠️ <strong>Cons:</strong> less efficient than the mean for normal data; multiple software definitions require documentation.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="special">
+            <h4>Special cases</h4>
+            <p class="muted small">For circular data (angles on a 0–360° scale), use the circular mean; for bounded proportions, consider logit or arcsine transforms before averaging.</p>
+          </section>
+        </div>
+
+        <h2 id="dispersion"><a class="anchor" href="#dispersion">Measures of dispersion</a></h2>
+        <div class="cmp-grid">
+          <section class="cmp" id="range">
+            <h4>Range = max(x) − min(x)</h4>
+            <ul>
+              <li>✅ <strong>Use:</strong> quick checks, technical specs.</li>
+              <li>➕ <strong>Pros:</strong> immediate; highlights full span.</li>
+              <li>⚠️ <strong>Cons:</strong> extremely sensitive to outliers; ignores central mass.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="iqr">
+            <h4>Interquartile range (IQR) = Q3 − Q1</h4>
+            <ul>
+              <li>✅ <strong>Use:</strong> skewed/heavy‑tailed data; box plots; 1.5×IQR outlier rule.</li>
+              <li>➕ <strong>Pros:</strong> resistant to tails; captures the middle 50%.</li>
+              <li>⚠️ <strong>Cons:</strong> discards tail information; less efficient if the distribution is normal.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="mad">
+            <h4>MAD (Median Absolute Deviation) = median(|xᵢ − median(x)|)</h4>
+            <ul>
+              <li>✅ <strong>Use:</strong> robust outlier detection; heavy‑tailed data.</li>
+              <li>➕ <strong>Pros:</strong> very robust (50% breakdown); scale‑equivariant with the median.</li>
+              <li>⚠️ <strong>Cons:</strong> needs a scaling factor to compare with SD (≈ 1.4826 under normality).</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="var-sd">
+            <h4>Variance and standard deviation</h4>
+            <p class="muted">Population: σ² = (1/N)·∑(xᵢ − μ)². Sample: s² = (1/(n−1))·∑(xᵢ − x̄)². SD is the square root (σ or s).</p>
+            <ul>
+              <li>✅ <strong>Use:</strong> inference (z/t intervals and tests), regression, quality control, forecasting error metrics.</li>
+              <li>➕ <strong>Pros:</strong> connects to many models; variance adds for independent sums.</li>
+              <li>⚠️ <strong>Cons:</strong> non‑robust; variance has squared units (less intuitive).</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="madm">
+            <h4>Mean absolute deviation (about the mean) = (1/n)·∑|xᵢ − x̄|</h4>
+            <ul>
+              <li>✅ <strong>Use:</strong> interpretable unit‑scale spread; teaching; some KPI dashboards.</li>
+              <li>➕ <strong>Pros:</strong> same units as the data; less sensitive than SD to large outliers.</li>
+              <li>⚠️ <strong>Cons:</strong> lacks some inferential properties; still not as robust as MAD.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="cv">
+            <h4>Coefficient of variation (CV) = s / x̄</h4>
+            <ul>
+              <li>✅ <strong>Use:</strong> compare relative variability across different scales; positive ratio‑scale data.</li>
+              <li>➕ <strong>Pros:</strong> dimensionless; communicates spread as a fraction of the mean.</li>
+              <li>⚠️ <strong>Cons:</strong> unstable when the mean is near zero; problematic with negatives.</li>
+            </ul>
+          </section>
+
+          <section class="cmp" id="idr">
+            <h4>Interdecile range (IDR) = P90 − P10</h4>
+            <ul>
+              <li>✅ <strong>Use:</strong> inequality and tail emphasis; alternative to IQR.</li>
+              <li>➕ <strong>Pros:</strong> covers 80% of the distribution (more than IQR).</li>
+              <li>⚠️ <strong>Cons:</strong> less robust than IQR; more sensitive to tails.</li>
+            </ul>
+          </section>
+        </div>
+
+        <h2 id="choose"><a class="anchor" href="#choose">Which measure to use? (practical guide)</a></h2>
+        <table class="tbl">
+          <thead>
+            <tr><th>Scenario</th><th>Location</th><th>Dispersion</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Income, prices with outliers</td>
+              <td><strong>Median</strong> or <em>trimmed</em> mean</td>
+              <td><strong>IQR</strong> or <strong>MAD</strong></td>
+              <td>Robust to heavy tails and extreme values</td>
+            </tr>
+            <tr>
+              <td>Physical measurements with Gaussian noise</td>
+              <td><strong>Mean</strong></td>
+              <td><strong>SD</strong></td>
+              <td>Efficiency and inferential properties</td>
+            </tr>
+            <tr>
+              <td>Percentile‑based performance (SLA)</td>
+              <td><strong>P50</strong> (median)</td>
+              <td><strong>P95/P99</strong> spread or <strong>IDR</strong></td>
+              <td>Targets are defined by percentiles, not averages</td>
+            </tr>
+            <tr>
+              <td>Ratios/growth (positive values)</td>
+              <td><strong>Geometric mean</strong></td>
+              <td>SD of log‑data or IQR</td>
+              <td>Multiplicative composition; log scale is natural</td>
+            </tr>
+            <tr>
+              <td>Compare variability across units/scales</td>
+              <td>—</td>
+              <td><strong>CV</strong></td>
+              <td>Unit‑free relative variability</td>
+            </tr>
+            <tr>
+              <td>Small samples, possible outliers</td>
+              <td><strong>Median</strong> or <strong>trimmed mean</strong></td>
+              <td><strong>MAD</strong> or <strong>IQR</strong></td>
+              <td>High robustness with limited data</td>
+            </tr>
+            <tr>
+              <td>Categorical/nominal data</td>
+              <td><strong>Mode</strong></td>
+              <td>—</td>
+              <td>Mean/median are not meaningful</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="deep"><a class="anchor" href="#deep">Deeper considerations</a></h2>
+        <div class="cmp-grid">
+          <section class="cmp">
+            <h4>Robustness vs. efficiency</h4>
+            <ul>
+              <li><em>Breakdown point:</em> fraction of contamination tolerated. Mean: ~0%; median & MAD: 50%.</li>
+              <li><em>Efficiency at normality:</em> the sample median has ~64% efficiency relative to the mean; 10% trimmed means can reach ~95%.</li>
+              <li>Choose robustness when outliers/skew are plausible; choose efficiency when modeling assumptions (e.g., normal errors) are credible.</li>
+            </ul>
+          </section>
+          <section class="cmp">
+            <h4>Data type and scale</h4>
+            <ul>
+              <li><strong>Nominal:</strong> only the mode is valid.</li>
+              <li><strong>Ordinal:</strong> medians and quantiles are valid; means are questionable.</li>
+              <li><strong>Interval/ratio:</strong> means and SD are valid; transformations may help (logs for positive skew).</li>
+            </ul>
+          </section>
+          <section class="cmp">
+            <h4>Transformations</h4>
+            <ul>
+              <li>Log‑transform positive right‑skewed data; analyze on the log scale (means/SD) and back‑transform via the geometric mean.</li>
+              <li>For proportions near 0 or 1, consider logit or arcsine–sqrt transforms for modeling; still report percentiles/IQR for communication.</li>
+            </ul>
+          </section>
+          <section class="cmp">
+            <h4>Empirical vs. distribution‑based rules</h4>
+            <ul>
+              <li><strong>Empirical 68–95–99.7 rule</strong> holds approximately for normal data: x̄ ± k·s covers known percentages.</li>
+              <li><strong>Chebyshev's inequality</strong> is distribution‑free: at least 1−1/k² of observations lie within k SD from the mean (k>1) — looser but safer without normality.</li>
+            </ul>
+          </section>
+        </div>
+
+        <h2 id="implementation"><a class="anchor" href="#implementation">Implementation notes</a></h2>
+        <div class="two-col">
+          <div class="callout">
+            <strong>Estimating SD with MAD.</strong> Under normality, σ ≈ 1.4826 × MAD. This provides a robust scale estimate compatible with SD.
+          </div>
+          <div class="callout">
+            <strong>Weighted variance.</strong> If weights are frequencies (sum to N), use s<sub>w</sub>² = [∑ wᵢ (xᵢ − x̄<sub>w</sub>)²] / (N − 1). For reliability weights, an unbiased form is s<sub>w</sub>² = [∑ wᵢ (xᵢ − x̄<sub>w</sub>)²] / [∑ wᵢ − (∑ wᵢ² / ∑ wᵢ)].
+          </div>
+        </div>
+        <div class="two-col" style="margin-top:12px">
+          <div class="callout">
+            <strong>Quantile definitions.</strong> Software uses different interpolation rules for Q<sub>p</sub> (type 1–9, etc.). Document the convention to ensure reproducibility.
+          </div>
+          <div class="callout">
+            <strong>Outlier rules.</strong> Common choices: z‑scores (mean/SD) for near‑normal data; robust z‑scores using median/MAD; box‑plot rule (1.5×IQR) for general use.
+          </div>
+        </div>
+
+        <h2 id="inference"><a class="anchor" href="#inference">Inference and uncertainty</a></h2>
+        <ul>
+          <li><strong>Mean:</strong> confidence intervals via t distribution when data are roughly normal or n is moderate/large.</li>
+          <li><strong>Median/quantiles:</strong> distribution‑free intervals via order statistics or bootstrap; wider but robust.</li>
+          <li><strong>Reporting:</strong> pair a location with a dispersion (e.g., median ± IQR, mean ± SD) and, when relevant, add a confidence interval.</li>
+        </ul>
+
+        <h2 id="takeaways"><a class="anchor" href="#takeaways">Takeaways</a></h2>
+        <ul>
+          <li>No single measure is universally best — <em>it depends</em> on distribution shape, objectives, and data type.</li>
+          <li>Use <strong>median + IQR/MAD</strong> for robustness; <strong>mean + SD</strong> for efficiency under regular conditions.</li>
+          <li>For ratios and growth, think on the log scale and use the <strong>geometric mean</strong>.</li>
+          <li>When comparing across scales, report a <strong>CV</strong> or normalized spread along with raw units.</li>
+          <li>Always visualize the data (histograms, box plots, density) before trusting summary numbers.</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</body>
+</html>

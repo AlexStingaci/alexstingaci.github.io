@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework 6 · Online Mean & Variance — Proofs and Algorithms</title>
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- MathJax for formulas -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff; --panel:#f8fafc;
+    --accent:#2563eb; --accent-2:#60a5fa; --grid:#e5e7eb; --p-line:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink); 
+    font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.6;
+  }
+  .page,.wrap{max-width:1100px; margin:32px auto 64px; padding:0 16px;}
+  header h1{margin:0 0 6px; font-size:clamp(22px,3.5vw,34px);}
+  header p.subtitle{margin:0; color:var(--muted);}
+  .crumbs{ color:var(--muted); font-size:14px; margin-bottom:6px }
+  .crumbs a{ color:inherit; text-decoration:none; }
+  .card{ border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+  .pill{display:inline-flex; gap:6px; align-items:center;  border:1px solid var(--line); padding:4px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+
+  /* Grid for main + sidebar */
+  .grid{display:grid; grid-template-columns: 3fr 1fr; gap:14px; align-items:start; margin-top:12px;}
+  @media (max-width:900px){ .grid{ grid-template-columns: 1fr; } }
+  .toc{ position:sticky; top:16px; align-self:start; height:max-content }
+  .toc h3{ margin:8px 0 12px; font-size:14px; color:var(--muted) }
+  .toc a{ display:block; padding:8px 10px; margin:6px 0; border-radius:12px; text-decoration:none; color:var(--ink);  border:1px solid var(--line) }
+  .toc a:hover{ outline: 2px solid color-mix(in oklab, var(--accent) 40%, transparent); }
+
+  /* Content elements used in 5 & 6 */
+  .intro{  border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .muted{ color:var(--muted) }
+  .kpi{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 }
+  .cmp-grid{ display:grid; gap:14px }
+  @media (min-width: 800px){ .cmp-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .cmp{  border:1px solid var(--line); border-radius:12px; padding:12px }
+  .cmp h4{ margin:0 0 6px; font-size:16px }
+  .callout{ border-left:4px solid var(--accent); padding:8px 12px;  border-radius:12px; border:1px solid var(--line) }
+  .warn{ border-left-color: #f59e0b }
+  .good{ border-left-color: #16a34a }
+  .small{ font-size: 13px; color: var(--muted) }
+
+  /* Tables */
+  .tbl{ width:100%; border-collapse:collapse; margin:10px 0;  border:1px solid var(--line); border-radius:12px; overflow:hidden }
+  .tbl th,.tbl td{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line) }
+  .tbl th{ color:var(--muted); font-weight:600;  font-size: 0.95em; color:#111827;  padding:2px 6px; border-radius:8px }
+
+  /* Anchors */
+  a.anchor{ color:inherit; text-decoration:none; position:relative }
+  a.anchor::after{ content:"#"; color:var(--muted); position:absolute; left:-16px; opacity:0; transition:opacity .2s }
+  a.anchor:hover::after{ opacity:1 }
+
+  /* Section titles (optional) */
+  .section-title{margin:18px 0 8px; font-size:18px;}
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+
+    <h1>Online Mean & Variance — Simple Recurrences, Robust Algorithms</h1>
+    <p class="subtitle">Derive the recurrence relationships for the arithmetic mean and variance and implement numerically stable online updates. Avoid batch formulas prone to cancellation and overflow.</p>
+
+    <div class="intro">
+      <div class="kpi">
+        <span class="pill">$\bar x_n = \bar x_{n-1} + \dfrac{x_n-\bar x_{n-1}}{n}$</span>
+        <span class="pill">$M2_n = M2_{n-1} + \delta\,(x_n-\bar x_n)$</span>
+        <span class="pill">$s_n^2 = M2_n/(n-1)$</span>
+        <span class="pill">$O(1)$ time & memory</span>
+      </div>
+      <div class="callout">
+        <strong>Why online?</strong> Streaming/large-scale data require constant memory and numerically stable updates. Batch formulas like $\;\operatorname{Var}(X)=\mathbb E[X^2]-\mathbb E[X]^2\;$ can suffer from catastrophic cancellation when $\mathbb E[X^2]\gg\mathbb E[X]^2$.
+      </div>
+    </div>
+
+    <article class="card">
+      <h2 id="mean"><a class="anchor" href="#mean">1) Recurrence for the arithmetic mean</a></h2>
+      <div class="cmp">
+        <h4>Statement</h4>
+        <p>$\displaystyle \bar x_n = \frac{1}{n}\sum_{i=1}^n x_i = \bar x_{n-1} + \frac{x_n-\bar x_{n-1}}{n}$.</p>
+      </div>
+      <div class="cmp">
+        <h4>Proof (one line)</h4>
+        <p>Let $S_n=\sum_{i=1}^n x_i = S_{n-1}+x_n$. Then $\bar x_n = S_n/n = (S_{n-1}+x_n)/n = \tfrac{n-1}{n}\,\bar x_{n-1}+\tfrac{x_n}{n} = \bar x_{n-1}+\tfrac{x_n-\bar x_{n-1}}{n}$. ✓</p>
+      </div>
+      <div class="cmp">
+        <h4>Online update</h4>
+        <p>On arrival of $x_n$, set $\delta = x_n - \bar x_{n-1}$ and update $\bar x_n = \bar x_{n-1} + \delta/n$.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2 id="variance"><a class="anchor" href="#variance">2) Recurrence for variance (Welford's method)</a></h2>
+      <div class="cmp">
+        <h4>Goal</h4>
+        <p>Maintain $n$, the running mean $m_n$ and the unnormalized sum of squares $M2_n=\sum_{i=1}^n (x_i-m_n)^2$. Then population and sample variances are $\sigma_n^2=M2_n/n$ and $s_n^2=M2_n/(n-1)$ for $n\ge 2$.</p>
+      </div>
+      <div class="cmp">
+        <h4>Recurrence</h4>
+        <p>With $\delta = x_n - m_{n-1}$ and $m_n = m_{n-1}+\delta/n$, the $M2$ update is $$M2_n = M2_{n-1} + \delta\,(x_n - m_n).$$</p>
+      </div>
+      <div class="cmp">
+        <h4>Proof (algebraic expansion)</h4>
+        <p>Write
+        $\displaystyle M2_n=\sum_{i=1}^n (x_i-m_n)^2=\sum_{i=1}^{n-1}(x_i-m_n)^2+(x_n-m_n)^2$.
+        For $i\le n-1$, use $x_i-m_n=(x_i-m_{n-1})-(m_n-m_{n-1})$ and $m_n-m_{n-1}=\delta/n$ to get
+        $\sum_{i=1}^{n-1}(x_i-m_n)^2 = \sum_{i=1}^{n-1}(x_i-m_{n-1})^2 - 2\,(\delta/n)\sum_{i=1}^{n-1}(x_i-m_{n-1}) + (n-1)(\delta/n)^2$.
+        The middle sum vanishes because $\sum_{i=1}^{n-1}(x_i-m_{n-1})=0$. Hence
+        $\sum_{i=1}^{n-1}(x_i-m_n)^2 = M2_{n-1} + (n-1)\,\delta^2/n^2$.
+        Also $(x_n-m_n)^2=(\delta-\delta/n)^2=\delta^2(1-1/n)^2$.
+        Adding gives $M2_n=M2_{n-1}+\delta^2\big[(n-1)/n^2 + (1-1/n)^2\big]=M2_{n-1}+\delta^2(1-1/n)$.
+        Since $x_n-m_n=\delta(1-1/n)$, we have $\delta(x_n-m_n)=\delta^2(1-1/n)$, yielding $M2_n=M2_{n-1}+\delta(x_n-m_n)$. ✓</p>
+      </div>
+      <div class="cmp warn">
+        <h4>Avoid the unstable one-pass $E[X^2]-E[X]^2$</h4>
+        <p>Updating $\mu_n$ and $q_n=\tfrac{1}{n}\sum x_i^2$ and using $q_n-\mu_n^2$ suffers from catastrophic cancellation when both terms are large. Welford's update avoids this.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2 id="algorithms"><a class="anchor" href="#algorithms">3) Online algorithms (pseudocode & Python)</a></h2>
+      <div class="cmp">
+        <h4>O(1) online update (Welford)</h4>
+<pre class="code">state: n, mean, M2   // initialize 0, 0, 0
+function add(x):
+  n ← n + 1
+  δ ← x − mean
+  mean ← mean + δ / n
+  M2 ← M2 + δ * (x − mean)
+// at any time:
+pop_variance = M2 / n            // n ≥ 1
+sample_variance = M2 / (n − 1)   // n ≥ 2</pre>
+      </div>
+      <div class="cmp">
+        <h4>Mergeability (Chan–Golub–LeVeque)</h4>
+        <p>Two summaries $(n_a, m_a, M2_a)$ and $(n_b, m_b, M2_b)$ can be merged without raw data:
+        $$\begin{aligned}
+        m &= \frac{n_a m_a + n_b m_b}{n_a+n_b},\\
+        M2 &= M2_a + M2_b + \frac{n_a n_b}{n_a+n_b}(m_b-m_a)^2,\\
+        n &= n_a+n_b.
+        \end{aligned}$$
+        This enables parallel/streaming aggregation.</p>
+      </div>
+      <div class="cmp">
+        <h4>Numerical notes</h4>
+        <ul>
+          <li><strong>Time/space:</strong> $O(1)$ per update; constant memory.</li>
+          <li><strong>Stability:</strong> robust to cancellation; $M2\ge 0$ up to rounding.</li>
+          <li><strong>Initialization:</strong> start with $n=0$; handle $n<2$ when reading $s_n^2$.</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+</body>
+</html>
