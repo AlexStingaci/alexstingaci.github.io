@@ -65,10 +65,6 @@
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="crumbs">📊 <a href="#">Statistics</a> / Homework 5</div>
-      <span class="pill">Dark · card layout · centered</span>
-    </header>
 
     <h1>Measures of Location and Dispersion</h1>
     <p class="subtitle">Definitions, formulas, practical use-cases, advantages and limitations — written in the same visual style as previous homeworks.</p>
@@ -102,9 +98,9 @@
             <h4>Arithmetic mean — x̄ = (1/n)·∑xᵢ</h4>
             <p class="muted">Balances signed deviations; uniquely minimizes the sum of squared deviations.</p>
             <ul>
-              <li>✅ <strong>Use:</strong> continuous measurements with random (roughly symmetric) noise; linear models; additive effects.</li>
-              <li>➕ <strong>Pros:</strong> very efficient under normal-like data; algebraically tractable; supports many inferential procedures (t‑tests, ANOVA).</li>
-              <li>⚠️ <strong>Cons:</strong> non-robust to outliers and heavy tails; can be misleading in skewed distributions.</li>
+              <li><strong>Use:</strong> continuous measurements with random (roughly symmetric) noise; linear models; additive effects.</li>
+              <li><strong>Pros:</strong> very efficient under normal-like data; algebraically tractable; supports many inferential procedures (t‑tests, ANOVA).</li>
+              <li><strong>Cons:</strong> non-robust to outliers and heavy tails; can be misleading in skewed distributions.</li>
             </ul>
           </section>
 
@@ -112,9 +108,9 @@
             <h4>Median — 50th percentile</h4>
             <p class="muted">Divides the sample in two equal parts; minimizes the sum of absolute deviations.</p>
             <ul>
-              <li>✅ <strong>Use:</strong> incomes, waiting times, house prices; ordinal data.</li>
-              <li>➕ <strong>Pros:</strong> highly robust (50% breakdown point); easy to interpret.</li>
-              <li>⚠️ <strong>Cons:</strong> less efficient than the mean on normal data; not linear (mean of medians ≠ global median).</li>
+              <li><strong>Use:</strong> incomes, waiting times, house prices; ordinal data.</li>
+              <li><strong>Pros:</strong> highly robust (50% breakdown point); easy to interpret.</li>
+              <li><strong>Cons:</strong> less efficient than the mean on normal data; not linear (mean of medians ≠ global median).</li>
             </ul>
           </section>
 
@@ -122,9 +118,9 @@
             <h4>Mode</h4>
             <p class="muted">Most frequent value. Natural for categorical or discrete data.</p>
             <ul>
-              <li>✅ <strong>Use:</strong> consumer choices, categories, typologies.</li>
-              <li>➕ <strong>Pros:</strong> simple; the only meaningful location for nominal variables.</li>
-              <li>⚠️ <strong>Cons:</strong> can be multi‑modal; unstable for continuous data without careful binning or density estimation.</li>
+              <li><strong>Use:</strong> consumer choices, categories, typologies.</li>
+              <li><strong>Pros:</strong> simple; the only meaningful location for nominal variables.</li>
+              <li><strong>Cons:</strong> can be multi‑modal; unstable for continuous data without careful binning or density estimation.</li>
             </ul>
           </section>
 
@@ -132,9 +128,9 @@
             <h4>Trimmed / Winsorized means — x̄<sub>α</sub></h4>
             <p class="muted">Trimmed mean drops a symmetric α fraction from the tails; winsorized replaces tails with the nearest retained values.</p>
             <ul>
-              <li>✅ <strong>Use:</strong> performance metrics with occasional extreme spikes; robust benchmarking.</li>
-              <li>➕ <strong>Pros:</strong> compromise between mean and median; improved robustness with good efficiency (e.g., 10% trimmed mean ≈ 95% efficiency under normality).</li>
-              <li>⚠️ <strong>Cons:</strong> requires choosing α; discards or caps tail information.</li>
+              <li><strong>Use:</strong> performance metrics with occasional extreme spikes; robust benchmarking.</li>
+              <li><strong>Pros:</strong> compromise between mean and median; improved robustness with good efficiency (e.g., 10% trimmed mean ≈ 95% efficiency under normality).</li>
+              <li><strong>Cons:</strong> requires choosing α; discards or caps tail information.</li>
             </ul>
           </section>
 
@@ -142,9 +138,9 @@
             <h4>Weighted mean — x̄<sub>w</sub> = (∑wᵢxᵢ)/(∑wᵢ)</h4>
             <p class="muted">Weights reflect sample sizes, reliability, or exposure.</p>
             <ul>
-              <li>✅ <strong>Use:</strong> price indices (CPI), meta‑analysis, aggregating heterogeneous groups.</li>
-              <li>➕ <strong>Pros:</strong> encodes importance or precision.</li>
-              <li>⚠️ <strong>Cons:</strong> poor weights introduce bias; always document the scheme.</li>
+              <li><strong>Use:</strong> price indices (CPI), meta‑analysis, aggregating heterogeneous groups.</li>
+              <li><strong>Pros:</strong> encodes importance or precision.</li>
+              <li><strong>Cons:</strong> poor weights introduce bias; always document the scheme.</li>
             </ul>
           </section>
 
@@ -152,8 +148,8 @@
             <h4>Geometric and harmonic means</h4>
             <p class="muted">Geometric: (∏xᵢ)<sup>1/n</sup> for xᵢ > 0 (compounded growth). Harmonic: n / ∑(1/xᵢ) for averaging rates (e.g., speed).</p>
             <ul>
-              <li>✅ <strong>Use:</strong> returns and growth rates (geometric); ratios and rates (harmonic).</li>
-              <li>⚠️ <strong>Notes:</strong> geometric undefined for non‑positives; harmonic sensitive to small values.</li>
+              <li><strong>Use:</strong> returns and growth rates (geometric); ratios and rates (harmonic).</li>
+              <li><strong>Notes:</strong> geometric undefined for non‑positives; harmonic sensitive to small values.</li>
             </ul>
           </section>
 
@@ -161,9 +157,9 @@
             <h4>Quantiles and percentiles</h4>
             <p class="muted">Q<sub>p</sub> is the value below which fraction p of data fall (e.g., Q1, Q3, P90).</p>
             <ul>
-              <li>✅ <strong>Use:</strong> service‑level targets ("95% under 2s"), wage distributions, standardized tests.</li>
-              <li>➕ <strong>Pros:</strong> robust and interpretable; percentile‑based comparisons are intuitive.</li>
-              <li>⚠️ <strong>Cons:</strong> less efficient than the mean for normal data; multiple software definitions require documentation.</li>
+              <li><strong>Use:</strong> service‑level targets ("95% under 2s"), wage distributions, standardized tests.</li>
+              <li><strong>Pros:</strong> robust and interpretable; percentile‑based comparisons are intuitive.</li>
+              <li><strong>Cons:</strong> less efficient than the mean for normal data; multiple software definitions require documentation.</li>
             </ul>
           </section>
 
@@ -178,27 +174,27 @@
           <section class="cmp" id="range">
             <h4>Range = max(x) − min(x)</h4>
             <ul>
-              <li>✅ <strong>Use:</strong> quick checks, technical specs.</li>
-              <li>➕ <strong>Pros:</strong> immediate; highlights full span.</li>
-              <li>⚠️ <strong>Cons:</strong> extremely sensitive to outliers; ignores central mass.</li>
+              <li><strong>Use:</strong> quick checks, technical specs.</li>
+              <li><strong>Pros:</strong> immediate; highlights full span.</li>
+              <li><strong>Cons:</strong> extremely sensitive to outliers; ignores central mass.</li>
             </ul>
           </section>
 
           <section class="cmp" id="iqr">
             <h4>Interquartile range (IQR) = Q3 − Q1</h4>
             <ul>
-              <li>✅ <strong>Use:</strong> skewed/heavy‑tailed data; box plots; 1.5×IQR outlier rule.</li>
-              <li>➕ <strong>Pros:</strong> resistant to tails; captures the middle 50%.</li>
-              <li>⚠️ <strong>Cons:</strong> discards tail information; less efficient if the distribution is normal.</li>
+              <li><strong>Use:</strong> skewed/heavy‑tailed data; box plots; 1.5×IQR outlier rule.</li>
+              <li><strong>Pros:</strong> resistant to tails; captures the middle 50%.</li>
+              <li><strong>Cons:</strong> discards tail information; less efficient if the distribution is normal.</li>
             </ul>
           </section>
 
           <section class="cmp" id="mad">
             <h4>MAD (Median Absolute Deviation) = median(|xᵢ − median(x)|)</h4>
             <ul>
-              <li>✅ <strong>Use:</strong> robust outlier detection; heavy‑tailed data.</li>
-              <li>➕ <strong>Pros:</strong> very robust (50% breakdown); scale‑equivariant with the median.</li>
-              <li>⚠️ <strong>Cons:</strong> needs a scaling factor to compare with SD (≈ 1.4826 under normality).</li>
+              <li><strong>Use:</strong> robust outlier detection; heavy‑tailed data.</li>
+              <li><strong>Pros:</strong> very robust (50% breakdown); scale‑equivariant with the median.</li>
+              <li><strong>Cons:</strong> needs a scaling factor to compare with SD (≈ 1.4826 under normality).</li>
             </ul>
           </section>
 
@@ -206,36 +202,36 @@
             <h4>Variance and standard deviation</h4>
             <p class="muted">Population: σ² = (1/N)·∑(xᵢ − μ)². Sample: s² = (1/(n−1))·∑(xᵢ − x̄)². SD is the square root (σ or s).</p>
             <ul>
-              <li>✅ <strong>Use:</strong> inference (z/t intervals and tests), regression, quality control, forecasting error metrics.</li>
-              <li>➕ <strong>Pros:</strong> connects to many models; variance adds for independent sums.</li>
-              <li>⚠️ <strong>Cons:</strong> non‑robust; variance has squared units (less intuitive).</li>
+              <li><strong>Use:</strong> inference (z/t intervals and tests), regression, quality control, forecasting error metrics.</li>
+              <li><strong>Pros:</strong> connects to many models; variance adds for independent sums.</li>
+              <li><strong>Cons:</strong> non‑robust; variance has squared units (less intuitive).</li>
             </ul>
           </section>
 
           <section class="cmp" id="madm">
             <h4>Mean absolute deviation (about the mean) = (1/n)·∑|xᵢ − x̄|</h4>
             <ul>
-              <li>✅ <strong>Use:</strong> interpretable unit‑scale spread; teaching; some KPI dashboards.</li>
-              <li>➕ <strong>Pros:</strong> same units as the data; less sensitive than SD to large outliers.</li>
-              <li>⚠️ <strong>Cons:</strong> lacks some inferential properties; still not as robust as MAD.</li>
+              <li><strong>Use:</strong> interpretable unit‑scale spread; teaching; some KPI dashboards.</li>
+              <li><strong>Pros:</strong> same units as the data; less sensitive than SD to large outliers.</li>
+              <li><strong>Cons:</strong> lacks some inferential properties; still not as robust as MAD.</li>
             </ul>
           </section>
 
           <section class="cmp" id="cv">
             <h4>Coefficient of variation (CV) = s / x̄</h4>
             <ul>
-              <li>✅ <strong>Use:</strong> compare relative variability across different scales; positive ratio‑scale data.</li>
-              <li>➕ <strong>Pros:</strong> dimensionless; communicates spread as a fraction of the mean.</li>
-              <li>⚠️ <strong>Cons:</strong> unstable when the mean is near zero; problematic with negatives.</li>
+              <li><strong>Use:</strong> compare relative variability across different scales; positive ratio‑scale data.</li>
+              <li><strong>Pros:</strong> dimensionless; communicates spread as a fraction of the mean.</li>
+              <li><strong>Cons:</strong> unstable when the mean is near zero; problematic with negatives.</li>
             </ul>
           </section>
 
           <section class="cmp" id="idr">
             <h4>Interdecile range (IDR) = P90 − P10</h4>
             <ul>
-              <li>✅ <strong>Use:</strong> inequality and tail emphasis; alternative to IQR.</li>
-              <li>➕ <strong>Pros:</strong> covers 80% of the distribution (more than IQR).</li>
-              <li>⚠️ <strong>Cons:</strong> less robust than IQR; more sensitive to tails.</li>
+              <li><strong>Use:</strong> inequality and tail emphasis; alternative to IQR.</li>
+              <li><strong>Pros:</strong> covers 80% of the distribution (more than IQR).</li>
+              <li><strong>Cons:</strong> less robust than IQR; more sensitive to tails.</li>
             </ul>
           </section>
         </div>
