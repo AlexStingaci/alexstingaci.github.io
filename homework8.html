@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework 8 · Bernoulli Process & Random-Walk — A Narrative Bridge</title>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff; --panel:#f8fafc;
+    --accent:#2563eb; --accent-2:#60a5fa; --grid:#e5e7eb; --p-line:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink); 
+    font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.7;
+    background:var(--bg);
+  }
+  .wrap{max-width:1100px; margin:32px auto 64px; padding:0 16px;}
+  header h1{margin:0 0 6px; font-size:clamp(22px,3.5vw,34px);}
+  header p.subtitle{margin:0; color:var(--muted);}
+  .card{ border:1px solid var(--line); border-radius:14px; padding:18px; background:white }
+  .intro{  border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--panel) }
+  .pill{display:inline-flex; gap:6px; align-items:center;  border:1px solid var(--line); padding:4px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+  .kpi{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 }
+  .callout{ border-left:4px solid var(--accent); padding:10px 12px;  border-radius:12px; border:1px solid var(--line); background:white }
+  .good{ border-left-color:#16a34a }
+  .warn{ border-left-color:#f59e0b }
+  a.anchor{ color:inherit; text-decoration:none; position:relative }
+  a.anchor::after{ content:"#"; color:var(--muted); position:absolute; left:-16px; opacity:0; transition:opacity .2s }
+  a.anchor:hover::after{ opacity:1 }
+  .section-title{margin:18px 0 8px; font-size:18px;}
+  .small{ font-size: 13px; color: var(--muted) }
+  p{ margin: 10px 0; }
+  .aside{ font-size: 14px; color: var(--muted); background: #f9fafb; border: 1px dashed var(--line); padding: 10px 12px; border-radius: 10px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Bernoulli Process & Security Random‑Walk — A Narrative Bridge</h1>
+      <p class="subtitle">From empirical frequencies to cumulative scores: why Homework 6 and 7 are telling the same story in two voices.</p>
+    </header>
+
+    <section class="intro" style="margin-top:12px">
+      <div class="kpi">
+        <span class="pill">$q=1-(1-p)^m$</span>
+        <span class="pill">$B_n=\sum_{i=1}^n Y_i\sim\mathrm{Bin}(n,q)$</span>
+        <span class="pill">$S_n=n-2B_n$</span>
+        <span class="pill">$\mathbb E[S_n]=n(1-2q),\ \mathrm Var(S_n)=4nq(1-q)$</span>
+      </div>
+      <div class="callout">
+        <strong>Reading guide.</strong> We will walk through the logic in prose, minimizing bulleted checklists. Equations appear when they clarify the narrative, but the goal is intuition first, formalism second.
+      </div>
+    </section>
+
+    <article class="card">
+      <h2 id="one-story"><a class="anchor" href="#one-story">1) One story, two cameras</a></h2>
+      <p>
+        Imagine a long diary of weekly outcomes. Each week either a breach happens ($Y_i=1$) or it does not ($Y_i=0$).
+        If every week the chance of breach is the same, $q$, and weeks are independent, then the total number of breached weeks up to $n$ is
+        $B_n=\sum_{i=1}^n Y_i$, a binomial random variable. 
+      </p>
+      <p>
+        Homework 6 watched this diary through the lens of <em>proportions</em>, plotting the empirical frequency $\hat q_n=B_n/n$ and showing—via the Law of Large Numbers—that it stabilizes near $q$.
+        Homework 7 used a different camera: it turned each week into a <em>step</em>, $X_i=+1$ for a secure week and $X_i=-1$ for a breach, and followed the cumulative score $S_n=\sum_{i=1}^n X_i$ as a biased random walk.
+      </p>
+      <p>
+        The surprise is that nothing deep separates these views. They are algebraically intertwined by the identity
+        $$S_n = n - 2B_n,\qquad \hat q_n = \frac{B_n}{n} = \frac{1}{2}\left(1 - \frac{S_n}{n}\right).$$
+        Thus, the LLN statement “$\hat q_n\to q$” is the same as “$S_n/n\to 1-2q$”. Changing cameras changes the picture,
+        but not the plot.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="pascal"><a class="anchor" href="#pascal">2) What Pascal already knew</a></h2>
+      <p>
+        Counting how many diaries end with exactly $b$ breaches is a classical exercise: choose the $b$ weeks among $n$ positions, hence $\binom{n}{b}$.
+        In the random‑walk language, this is the number of paths that finish at score $s=n-2b$. The coefficients $\binom{n}{b}$ are the familiar entries in row $n$ of Pascal’s triangle.
+      </p>
+      <p>
+        Pascal’s rule,
+        $$\binom{n}{b}=\binom{n-1}{b}+\binom{n-1}{b-1},$$
+        has a vivid interpretation here. Arriving at $(n,b)$ either you were secure in the last week (so you stayed with $b$ breaches and came from $(n-1,b)$) or you were breached (so you increased to $b$ and came from $(n-1,b-1)$).
+        The same “last‑step” decomposition produces a one‑line recurrence for the distribution of the random walk:
+        $$\mathbb P(S_n=s)=(1-q)\,\mathbb P(S_{n-1}=s-1)+q\,\mathbb P(S_{n-1}=s+1).$$
+        In short, Pascal’s triangle is not just arithmetic; it is the walk’s combinatorial shadow.
+      </p>
+      <p class="aside">
+        In the symmetric case $q=\tfrac12$, the triangle’s central coefficients dominate. This is why, when the walk has zero drift, most mass stacks around $S_n\approx 0$ and the peak probability at $S_{2m}=0$ is $\binom{2m}{m}2^{-2m}$.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="binomial"><a class="anchor" href="#binomial">3) The binomial expansion as a machine</a></h2>
+      <p>
+        There is another way to see the same structure, this time through generating functions.
+        If we encode the random walk by powers of $z$, the score after $n$ weeks has generating function
+        $$G_n(z)=\mathbb E[z^{S_n}]=\big((1-q)z+q z^{-1}\big)^n.$$
+        Expanding with the binomial theorem makes the coefficients of $z^s$ fall out automatically; reading those coefficients is tantamount to reading the distribution of $S_n$.
+      </p>
+      <p>
+        Moment calculations inherit the same convenience. The moment generating function
+        $$M_{S_n}(t)=\big((1-q)e^{t}+q e^{-t}\big)^n$$
+        yields the drift $\mathbb E[S_n]=n(1-2q)$ and the variance $\mathrm Var(S_n)=4nq(1-q)$ by differentiation.
+        With proper centering and scaling, the Central Limit Theorem says that the standardized $S_n$ looks Gaussian for large $n$—a mirror image of the CLT for $\hat q_n$.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="fibonacci"><a class="anchor" href="#fibonacci">4) A Fibonacci detour</a></h2>
+      <p>
+        Fibonacci numbers seem far from security logs, but they appear the moment we impose a simple policy constraint:
+        <em>no two breaches in a row</em>. If we only count binary diaries with no adjacent 1’s, the number of such strings of length $n$
+        is $F_{n+2}$. This identity is a consequence of the “shallow diagonal” sums of Pascal’s triangle, for example
+        $$F_n=\sum_{k\ge 0}\binom{n-k-1}{k}.$$
+      </p>
+      <p>
+        Turning the count into a probability is immediate under Bernoulli($q$): sum the appropriate binomial terms over the admissible patterns.
+        The resulting expression,
+        $$\sum_{k=0}^{\lfloor n/2\rfloor}\binom{n-k+1}{k}\,q^{k}(1-q)^{n-k},$$
+        quantifies “cool‑down” policies by telling us how likely it is that reality (with breach rate $q$) accidentally complies with “no consecutive breaches” over $n$ weeks.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="diverge"><a class="anchor" href="#diverge">5) Where the two views diverge in practice</a></h2>
+      <p>
+        Although they share a backbone, the two homeworks emphasize different narratives. The LLN perspective treats the process as a proportion that stabilizes;
+        its plots live on the interval $[0,1]$ and speak the language of frequencies. The random‑walk view turns the same evidence into motion:
+        scores live on a lattice $\{n,n-2,\dots,-n\}$, and the key visual is a cloud of trajectories with an evident drift.
+      </p>
+      <p>
+        In operational terms, the drift $1-2q$ is an interpretable “security advantage per week.” When $q<\tfrac12$, the walk tends to climb; when $q>\tfrac12$, it tends to sink. 
+        The special case $q=\tfrac12$ is a fair walk with no average trend, dominated by the central binomial coefficients.
+      </p>
+      <p>
+        Finally, the security scenario adds one layer that LLN by itself does not mention: multiple attackers.
+        If each attacker breaches with probability $p$ and there are $m$ of them, the weekly breach probability becomes
+        $$q=1-(1-p)^m\approx 1-e^{-mp}\quad\text{for small }p.$$
+        All the structure above—Pascal, binomial expansion, CLT—remains intact after this substitution.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="close"><a class="anchor" href="#close">6) Closing picture</a></h2>
+      <p>
+        Homework 6 and Homework 7 are not different models but different <em>projections</em> of the same Bernoulli world.
+        One projects onto the axis of frequencies ($\hat q_n$), the other onto the axis of cumulative scores ($S_n$).
+        Both are governed by binomial coefficients, both inherit Pascal’s recursion, both expand neatly with the binomial theorem, and both submit to the LLN and the CLT.
+      </p>
+      <p class="aside">
+        If you keep a single mental blueprint: “<em>Choose-your-weeks</em>” explains the counts ($\binom{n}{b}$), “<em>last step</em>” explains the recurrences, and “<em>binomial expansion</em>” explains the probabilities and moments. Everything else—Fibonacci detours, Catalan constraints, symmetric peaks—are natural corollaries along that path.
+      </p>
+    </article>
+
+  </div>
+</body>
+</html>
