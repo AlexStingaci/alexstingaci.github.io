@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Homework 10 – Simulation of a Counting Process and Poisson Approximation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f4f8;
+      color: #222;
+      line-height: 1.6;
+    }
+
+
+    header .title {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header h1 {
+      font-size: 1.9rem;
+      margin-bottom: 0.3rem;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto 2rem auto;
+      padding: 0 1rem 2rem;
+    }
+
+    section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: #1f355a;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin: 0.8rem 0 0.3rem;
+      color: #2b4a7f;
+    }
+
+    p {
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      margin: 0.3rem 0 0.6rem 1.2rem;
+      font-size: 0.95rem;
+    }
+
+    code {
+      background: #f0f0f5;
+      padding: 0 0.2rem;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.6rem;
+      margin-top: 0.6rem;
+      margin-bottom: 0.8rem;
+      align-items: end;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+      font-size: 0.9rem;
+    }
+
+    .control-group label {
+      font-weight: 600;
+      color: #2a3e64;
+    }
+
+    .control-group input {
+      padding: 0.25rem 0.35rem;
+      border-radius: 6px;
+      border: 1px solid #cfd4e6;
+      font-size: 0.9rem;
+    }
+
+    button {
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      border: none;
+      background: #375da8;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      justify-self: flex-start;
+    }
+
+    button:hover {
+      background: #2c4a84;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+      gap: 1rem;
+      margin-top: 0.6rem;
+    }
+
+    .panel {
+      background: #f9f9fc;
+      border-radius: 10px;
+      padding: 0.6rem;
+      border: 1px solid #e0e3f0;
+    }
+
+    .panel h3 {
+      margin-top: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 260px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid #dde1f0;
+      display: block;
+    }
+
+    .stats {
+      font-size: 0.9rem;
+      margin-top: 0.4rem;
+      white-space: pre-line;
+    }
+
+    .legend {
+      font-size: 0.85rem;
+      margin-top: 0.4rem;
+      color: #555;
+    }
+
+    .math-block {
+      background: #f7f7fb;
+      border-left: 3px solid #3f5d9c;
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin: 0.4rem 0;
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      overflow-x: auto;
+    }
+
+    footer {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 1rem 2rem;
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    @media (max-width: 760px) {
+      .panels {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>Homework 10 – Simulation of a Counting Process</h1>
+    <p>
+      Approximation of a homogeneous Poisson process via a discrete-time Bernoulli construction,
+      and interpretation of the rate parameter λ.
+    </p>
+  </div>
+</header>
+
+<main>
+  <!-- 1. Experimental setup and simulation -->
+  <section>
+    <h2>1. Experimental Setup: Discrete Approximation of a Counting Process</h2>
+    <p>
+      We consider a time interval <code>[0, T]</code> (for example, <code>T = 1</code>) during which
+      “successes” (or “events”) occur independently and uniformly in time at a constant average
+      rate <code>λ &gt; 0</code>. The goal is to simulate a counting process
+      <code>N(t)</code> that records the cumulative number of events observed up to time <code>t</code>.
+    </p>
+    <p>
+      Instead of working directly in continuous time, we approximate the process by partitioning
+      the interval <code>[0, T]</code> into <code>n</code> small subintervals, all of the same length
+      <code>Δt = T / n</code>. In each subinterval we generate (at most) one event, independently of all
+      other subintervals.
+    </p>
+    <p>
+      The key modeling assumption is that the probability of an event in a small subinterval of
+      length <code>Δt</code> should be approximately proportional to its length:
+    </p>
+    <div class="math-block">
+      P(event in a subinterval of length Δt) ≈ λ · Δt.
+    </div>
+    <p>
+      Therefore, if we fix <code>T</code> and choose <code>n</code> large, we simulate each subinterval
+      as a Bernoulli trial with success probability
+    </p>
+    <div class="math-block">
+      p = λ · Δt = λ · T / n.
+    </div>
+    <p>
+      For the special case <code>T = 1</code>, this reduces to <code>p = λ / n</code>, as in the
+      assignment statement.
+    </p>
+
+    <h3>Simulation Algorithm (Bernoulli Construction)</h3>
+    <ul>
+      <li>Fix parameters: <code>T</code>, <code>λ</code>, and the number of subintervals <code>n</code>.</li>
+      <li>Compute <code>Δt = T / n</code> and <code>p = λ · Δt</code> (ensuring <code>p ≤ 1</code>).</li>
+      <li>For each subinterval <code>k = 1, 2, …, n</code>, generate a Bernoulli random variable
+        <code>X<sub>k</sub></code> with <code>P(X<sub>k</sub> = 1) = p</code> and <code>P(X<sub>k</sub> = 0) = 1 − p</code>.</li>
+      <li>Define the discrete-time counting process as
+        <span class="math-block">
+          N(k Δt) = X<sub>1</sub> + X<sub>2</sub> + … + X<sub>k</sub>, &nbsp; for k = 0, 1, …, n.
+        </span>
+      </li>
+    </ul>
+    <p>
+      The graph of <code>N(t)</code> over <code>[0, T]</code> is a step function which jumps up by 1 at those
+      subintervals where <code>X<sub>k</sub> = 1</code> and stays flat where <code>X<sub>k</sub> = 0</code>.
+    </p>
+  </section>
+
+  <!-- 2. Interactive simulation -->
+  <section>
+    <h2>2. Interactive Simulation</h2>
+    <p>
+      The following simple tool simulates our discrete counting process, plots one random trajectory,
+      and shows the empirical distribution of the total count <code>N(T)</code> over several runs.
+    </p>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="lambdaInput">Rate λ (events per unit time)</label>
+        <input id="lambdaInput" type="number" step="0.1" min="0" value="5">
+      </div>
+
+      <div class="control-group">
+        <label for="tInput">Total time T</label>
+        <input id="tInput" type="number" step="0.1" min="0.1" value="1">
+      </div>
+
+      <div class="control-group">
+        <label for="nInput">Number of subintervals n</label>
+        <input id="nInput" type="number" min="10" step="10" value="5000">
+      </div>
+
+      <div class="control-group">
+        <label for="repInput">Number of trajectories (for N(T) histogram)</label>
+        <input id="repInput" type="number" min="1" step="1" value="200">
+      </div>
+
+      <button id="runButton">Run simulation</button>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <h3>Single Sample Path of N(t)</h3>
+        <canvas id="trajectoryCanvas" width="600" height="260"></canvas>
+        <div class="legend">
+          The step function shows the cumulative count N(t) for one realization of the process
+          over [0, T]. Time is on the horizontal axis, while N(t) is on the vertical axis.
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Distribution of N(T) over Many Trajectories</h3>
+        <canvas id="histCanvas" width="400" height="260"></canvas>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Identification of the limiting stochastic process -->
+  <section>
+    <h2>3. Identification of the Limiting Stochastic Process</h2>
+    <p>
+      For fixed <code>T</code> and <code>λ</code>, as we increase the number of subintervals <code>n</code> and make
+      <code>Δt = T / n</code> smaller and smaller, the discrete counting process
+    </p>
+    <div class="math-block">
+      N(k Δt) = X<sub>1</sub> + ··· + X<sub>k</sub>, &nbsp; with X<sub>k</sub> ~ Bernoulli(p = λ Δt),
+    </div>
+    <p>
+      converges in distribution (and in a suitable stochastic sense) to a
+      <strong>homogeneous Poisson process</strong> with rate <code>λ</code>. This limiting process,
+      usually denoted by <code>{N(t), t ≥ 0}</code>, is characterized by the following properties:
+    </p>
+    <ul>
+      <li><strong>Initial condition:</strong> <code>N(0) = 0</code> almost surely.</li>
+      <li><strong>Independent increments:</strong> For any disjoint time intervals, the increments of
+          the process are independent random variables. For example,
+          <code>N(t<sub>2</sub>) − N(t<sub>1</sub>)</code> and <code>N(t<sub>4</sub>) − N(t<sub>3</sub>)</code> are independent if
+          <code>[t<sub>1</sub>, t<sub>2</sub>]</code> and <code>[t<sub>3</sub>, t<sub>4</sub>]</code> do not overlap.</li>
+      <li><strong>Stationary increments:</strong> The distribution of the increment
+          <code>N(t + h) − N(t)</code> depends only on the length <code>h</code> of the interval, not on the
+          particular position <code>t</code> on the time axis.</li>
+      <li><strong>Poisson-distributed increments:</strong> For any <code>t ≥ 0</code> and <code>h &gt; 0</code>,
+          <span class="math-block">
+            N(t + h) − N(t) ~ Poisson(λ h),
+          </span>
+          meaning that for <code>k = 0, 1, 2, …</code>
+          <span class="math-block">
+            P(N(t + h) − N(t) = k) = e<sup>−λh</sup> (λ h)<sup>k</sup> / k!.
+          </span>
+      </li>
+    </ul>
+    <p>
+      In particular, for <code>T = 1</code> we have
+    </p>
+    <div class="math-block">
+      N(1) ~ Poisson(λ).
+    </div>
+    <p>
+      On the discrete side, in our simulation we actually have
+    </p>
+    <div class="math-block">
+      N(1) = X<sub>1</sub> + ··· + X<sub>n</sub> ~ Binomial(n, p = λ / n).
+    </div>
+    <p>
+      It is a classical limit result (the “law of rare events”) that, as
+      <code>n → ∞</code> with <code>λ</code> fixed,
+    </p>
+    <div class="math-block">
+      Binomial(n, λ / n) ⇒ Poisson(λ),
+    </div>
+    <p>
+      which explains why the simulation histogram of <code>N(1)</code> becomes closer and closer
+      to a Poisson distribution with mean <code>λ</code> as <code>n</code> and the number of trajectories increase.
+    </p>
+  </section>
+
+  <!-- 4. Theoretical properties and relation to inter-arrival times -->
+  <section>
+    <h2>4. Theoretical Properties and Inter-Arrival Times</h2>
+    <p>
+      An equivalent way of describing a Poisson counting process is through its
+      <strong>inter-arrival times</strong>. Let
+      <code>T<sub>1</sub>, T<sub>2</sub>, …</code> be the times between consecutive events:
+    </p>
+    <ul>
+      <li><code>T<sub>1</sub></code> = time from 0 to the first event,</li>
+      <li><code>T<sub>2</sub></code> = time between the first and the second event, etc.</li>
+    </ul>
+    <p>
+      For a homogeneous Poisson process with rate <code>λ</code>:
+    </p>
+    <ul>
+      <li>The inter-arrival times are independent and identically distributed.</li>
+      <li>Each inter-arrival time is <strong>exponentially distributed</strong>:
+        <span class="math-block">
+          T<sub>k</sub> ~ Exponential(λ), &nbsp; P(T<sub>k</sub> &gt; t) = e<sup>−λ t</sup>, &nbsp; t ≥ 0.
+        </span>
+      </li>
+    </ul>
+    <p>
+      This implies several important properties:
+    </p>
+    <ul>
+      <li><strong>Mean waiting time:</strong> The expected time between events is
+        <span class="math-block">
+          E[T<sub>k</sub>] = 1 / λ.
+        </span>
+        So if <code>λ = 5</code> events per unit time, the average waiting time between events is
+        <code>1/5</code> of a time unit.
+      </li>
+      <li><strong>Memoryless property:</strong> For exponential inter-arrival times,
+        <span class="math-block">
+          P(T<sub>k</sub> &gt; s + t | T<sub>k</sub> &gt; s) = P(T<sub>k</sub> &gt; t),
+        </span>
+        meaning that the remaining waiting time does not depend on how much time has already passed
+        since the last event.
+      </li>
+    </ul>
+    <p>
+      When we refine the discrete grid (making <code>Δt</code> smaller), the distribution of the time
+      between jumps of the simulated process tends to the exponential distribution, which is
+      consistent with the Poisson process model.
+    </p>
+  </section>
+
+  <!-- 5. Interpretation of λ (rate parameter) -->
+  <section>
+    <h2>5. Interpretation of the Rate Parameter λ</h2>
+    <p>
+      The parameter <code>λ</code> plays a central role in both the simulation and the theory.
+      It can be interpreted in several complementary ways:
+    </p>
+    <h3>(a) Average number of events per unit time</h3>
+    <p>
+      For a Poisson process with rate <code>λ</code>,
+    </p>
+    <div class="math-block">
+      E[N(t)] = λ t, &nbsp; Var(N(t)) = λ t.
+    </div>
+    <p>
+      Thus, over a time interval of length <code>t</code> we expect to see on average <code>λ t</code> events,
+      and the variance of the count is equal to its mean. In the simulation, the empirical average
+      of <code>N(T)</code> over many trajectories should be close to <code>λ T</code>.
+    </p>
+
+    <h3>(b) Intensity of the process</h3>
+    <p>
+      The rate <code>λ</code> also describes how “intense” the process is in small time intervals.
+      For a very short interval of length <code>h</code>:
+    </p>
+    <div class="math-block">
+      P(N(t + h) − N(t) = 1) ≈ λ h,  <br>
+      P(N(t + h) − N(t) ≥ 2) ≈ 0  (for very small h).
+    </div>
+    <p>
+      In the discrete simulation this corresponds exactly to each tiny interval of length
+      <code>Δt</code> having probability <code>p = λ Δt</code> of containing an event, and negligible chance
+      of containing more than one.
+    </p>
+
+    <h3>(c) Inverse of the mean waiting time</h3>
+    <p>
+      As seen in the exponential inter-arrival time view:
+    </p>
+    <div class="math-block">
+      E[T<sub>k</sub>] = 1 / λ.
+    </div>
+    <p>
+      A large value of <code>λ</code> corresponds to many events in a short period (short average waiting
+      time), whereas a small value of <code>λ</code> corresponds to few events per unit time (long average
+      waiting time).
+    </p>
+  </section>
+
+  <!-- 6. Summary -->
+  <section>
+    <h2>6. Summary and Conceptual Conclusions</h2>
+    <p>
+      In this homework we constructed a discrete-time counting process by splitting a time
+      interval <code>[0, T]</code> into many small subintervals and performing independent Bernoulli
+      trials with success probability <code>p = λ Δt</code> in each subinterval. The resulting process
+      has the form
+    </p>
+    <div class="math-block">
+      N(k Δt) = X<sub>1</sub> + ··· + X<sub>k</sub>, &nbsp; X<sub>k</sub> ~ Bernoulli(λ Δt),
+    </div>
+    <p>
+      and approximates, as <code>Δt → 0</code>, a homogeneous Poisson process with rate <code>λ</code>.
+      The total count <code>N(T)</code> becomes approximately Poisson with parameter <code>λ T</code>, and the
+      inter-arrival times between events become approximately exponential with mean <code>1/λ</code>.
+    </p>
+    <p>
+      From a modeling perspective, the rate parameter <code>λ</code> has a clear and intuitive meaning:
+      it is the average number of events per unit time, the intensity of the process in small
+      intervals, and the reciprocal of the mean waiting time between events. The simulation
+      illustrates how a simple discrete Bernoulli construction can be used to understand and
+      approximate a continuous-time stochastic process, bridging the gap between intuitive
+      “coin-toss” experiments and the formal theory of Poisson processes.
+    </p>
+  </section>
+</main>
+
+<footer>
+  Homework 10 – Counting processes and Poisson approximation. Simulation and discussion in English.
+</footer>
+
+<script>
+  // Utility: generate a single trajectory of the discrete counting process
+  function generateTrajectory(lambda, T, n) {
+    const dt = T / n;
+    const p = lambda * dt;
+    const times = new Array(n + 1);
+    const counts = new Array(n + 1);
+    times[0] = 0;
+    counts[0] = 0;
+    let N = 0;
+
+    for (let k = 1; k <= n; k++) {
+      times[k] = k * dt;
+      const u = Math.random();
+      if (u < p) {
+        N += 1;
+      }
+      counts[k] = N;
+    }
+    return { times, counts, T, N_T: N };
+  }
+
+  // Draw step function for N(t) on a canvas
+  function drawTrajectory(canvas, traj) {
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const { times, counts, T } = traj;
+    const Nmax = Math.max(...counts, 1);
+
+    const paddingLeft = 40;
+    const paddingBottom = 30;
+    const paddingTop = 10;
+    const paddingRight = 10;
+
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingTop - paddingBottom;
+
+    // Axes
+    ctx.strokeStyle = "#777";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    // x-axis
+    ctx.moveTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(width - paddingRight, height - paddingBottom);
+    // y-axis
+    ctx.moveTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(paddingLeft, paddingTop);
+    ctx.stroke();
+
+    // Axis labels (simple)
+    ctx.fillStyle = "#333";
+    ctx.font = "10px system-ui";
+
+    ctx.fillText("t", width - paddingRight - 10, height - paddingBottom + 12);
+    ctx.fillText("N(t)", paddingLeft - 30, paddingTop + 10);
+
+    // Step path
+    ctx.strokeStyle = "#2d61c2";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+
+    function xToPx(t) {
+      return paddingLeft + (t / T) * plotWidth;
+    }
+    function yToPx(N) {
+      const yRatio = Nmax === 0 ? 0 : N / Nmax;
+      return (height - paddingBottom) - yRatio * plotHeight;
+    }
+
+    // Start at time 0
+    ctx.moveTo(xToPx(0), yToPx(counts[0]));
+
+    for (let k = 1; k < times.length; k++) {
+      const tPrev = times[k - 1];
+      const tCurr = times[k];
+      const NPrev = counts[k - 1];
+      const NCurr = counts[k];
+
+      // horizontal segment at NPrev from tPrev to tCurr
+      ctx.lineTo(xToPx(tCurr), yToPx(NPrev));
+      // if there is a jump, draw vertical line up
+      if (NCurr !== NPrev) {
+        ctx.lineTo(xToPx(tCurr), yToPx(NCurr));
+      }
+    }
+
+    ctx.stroke();
+  }
+
+  // Draw histogram of N(T) counts
+  function drawHistogram(canvas, counts) {
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width;
+    const height = canvas.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (counts.length === 0) return;
+
+    // Frequency map
+    const freqMap = new Map();
+    counts.forEach(v => {
+      freqMap.set(v, (freqMap.get(v) || 0) + 1);
+    });
+
+    const keys = Array.from(freqMap.keys()).sort((a, b) => a - b);
+    const values = keys.map(k => freqMap.get(k));
+    const maxFreq = Math.max(...values);
+
+    const paddingLeft = 35;
+    const paddingBottom = 30;
+    const paddingTop = 10;
+    const paddingRight = 10;
+
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingTop - paddingBottom;
+
+    // Axes
+    ctx.strokeStyle = "#777";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    // x-axis
+    ctx.moveTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(width - paddingRight, height - paddingBottom);
+    // y-axis
+    ctx.moveTo(paddingLeft, height - paddingBottom);
+    ctx.lineTo(paddingLeft, paddingTop);
+    ctx.stroke();
+
+    ctx.fillStyle = "#333";
+    ctx.font = "10px system-ui";
+    ctx.fillText("k = N(T)", width - paddingRight - 40, height - paddingBottom + 12);
+    ctx.fillText("freq", paddingLeft - 28, paddingTop + 10);
+
+    const barCount = keys.length;
+    const barSpacing = barCount > 0 ? plotWidth / barCount : plotWidth;
+    const barWidth = barSpacing * 0.7;
+
+    ctx.fillStyle = "#3f6bd3";
+
+    keys.forEach((k, idx) => {
+      const freq = freqMap.get(k);
+      const x = paddingLeft + idx * barSpacing + (barSpacing - barWidth) / 2;
+      const barHeight = (freq / maxFreq) * plotHeight;
+      const yTop = (height - paddingBottom) - barHeight;
+      ctx.fillRect(x, yTop, barWidth, barHeight);
+
+      // x tick label
+      ctx.fillStyle = "#333";
+      ctx.textAlign = "center";
+      ctx.fillText(String(k), x + barWidth / 2, height - paddingBottom + 12);
+      ctx.fillStyle = "#3f6bd3";
+    });
+  }
+
+  function runSimulation() {
+    const lambda = parseFloat(document.getElementById("lambdaInput").value);
+    const T = parseFloat(document.getElementById("tInput").value);
+    const n = parseInt(document.getElementById("nInput").value, 10);
+    const reps = parseInt(document.getElementById("repInput").value, 10);
+
+    if (!(lambda >= 0) || !(T > 0) || !(n > 0) || !(reps > 0)) {
+      alert("Please enter positive values for λ, T, n, and the number of trajectories.");
+      return;
+    }
+
+    const traj = generateTrajectory(lambda, T, n);
+    const trajectoryCanvas = document.getElementById("trajectoryCanvas");
+    drawTrajectory(trajectoryCanvas, traj);
+
+    // Repeat simulation to estimate distribution of N(T)
+    const finalCounts = [];
+    for (let r = 0; r < reps; r++) {
+      const tr = generateTrajectory(lambda, T, n);
+      finalCounts.push(tr.N_T);
+    }
+
+    const histCanvas = document.getElementById("histCanvas");
+    drawHistogram(histCanvas, finalCounts);
+
+    // Empirical mean and variance
+    const m = finalCounts.length;
+    const mean = finalCounts.reduce((a, b) => a + b, 0) / m;
+    const varEmp = finalCounts.reduce((a, b) => a + (b - mean) * (b - mean), 0) / m;
+
+    const statsDiv = document.getElementById("stats");
+    statsDiv.textContent =
+      "Empirical statistics of N(T) over " + reps + " trajectories:\n" +
+      "  · Mean(N(T)) ≈ " + mean.toFixed(3) + "\n" +
+      "  · Var(N(T))  ≈ " + varEmp.toFixed(3) + "\n" +
+      "Theoretical Poisson(λ T) values:\n" +
+      "  · E[N(T)] = λ T = " + (lambda * T).toFixed(3) + "\n" +
+      "  · Var(N(T)) = λ T = " + (lambda * T).toFixed(3);
+  }
+
+  document.getElementById("runButton").addEventListener("click", runSimulation);
+
+  // Run once on load with default values
+  window.addEventListener("load", runSimulation);
+</script>
+</body>
+</html>

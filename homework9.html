@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Homework · Interpretations, Axioms & Measure-Theoretic Probability</title>
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#ffffff; --panel:#f8fafc;
+    --accent:#2563eb; --accent-2:#60a5fa; --grid:#e5e7eb; --p-line:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink); 
+    font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; line-height:1.7;
+    background:var(--bg);
+  }
+  .wrap{max-width:1100px; margin:32px auto 64px; padding:0 16px;}
+  header h1{margin:0 0 6px; font-size:clamp(22px,3.5vw,34px);}
+  header p.subtitle{margin:0; color:var(--muted);}
+  .card{ border:1px solid var(--line); border-radius:14px; padding:18px; background:white }
+  .intro{  border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--panel) }
+  .pill{display:inline-flex; gap:6px; align-items:center;  border:1px solid var(--line); padding:4px 10px; border-radius:999px; font-size:12px; color:var(--muted)}
+  .kpi{ display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 }
+  .callout{ border-left:4px solid var(--accent); padding:10px 12px;  border-radius:12px; border:1px solid var(--line); background:white }
+  .good{ border-left-color:#16a34a }
+  .warn{ border-left-color:#f59e0b }
+  a.anchor{ color:inherit; text-decoration:none; position:relative }
+  a.anchor::after{ content:"#"; color:var(--muted); position:absolute; left:-16px; opacity:0; transition:opacity .2s }
+  a.anchor:hover::after{ opacity:1 }
+  .section-title{margin:18px 0 8px; font-size:18px;}
+  .small{ font-size: 13px; color: var(--muted) }
+  p{ margin: 10px 0; }
+  .aside{ font-size: 14px; color: var(--muted); background: #f9fafb; border: 1px dashed var(--line); padding: 10px 12px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Probability: Interpretations, Axioms & Measure-Theoretic Foundations</h1>
+    </header>
+
+
+    <article class="card">
+      <h2 id="interpretations"><a class="anchor" href="#interpretations">1) Many voices, one word “probability”</a></h2>
+      <p>
+        Historically, “probability” did not start with a single rigorous definition. Different communities used it in different ways, giving rise to several
+        main interpretations.
+      </p>
+      <p>
+        <strong>Classical (Laplacean) interpretation.</strong> When a finite number of outcomes are considered <em>equally likely</em>, the probability of an event $A$ is
+        $$P(A)=\frac{\text{number of favorable cases}}{\text{number of possible cases}}.$$
+        This works well for symmetric games of chance (coins, dice, cards), but struggles when symmetry is unclear or the sample space is infinite.
+      </p>
+      <p>
+        <strong>Frequentist interpretation.</strong> Here probability is a <em>long-run relative frequency</em>. If we can repeat an experiment under identical conditions,
+        $$P(A)\approx\frac{N_n(A)}{n},\quad\text{as }n\to\infty,$$
+        where $N_n(A)$ counts how many times $A$ occurs in $n$ trials. This view is powerful for physical experiments but has trouble with
+        single-case events and with probabilities of hypotheses (“probability that a model is true”).
+      </p>
+      <p>
+        <strong>Bayesian (subjective) interpretation.</strong> Probability is a <em>degree of belief</em> of a rational agent, constrained by coherence (e.g. avoiding sure loss
+        in betting schemes). Prior beliefs are updated via Bayes’ theorem when new data arrive. This interpretation naturally assigns probabilities to
+        hypotheses and parameters, but requires us to justify the choice of prior.
+      </p>
+      <p>
+        <strong>Geometric and continuous interpretations.</strong> When outcomes form a continuum (points on a line, angles, directions), one often reasons by geometric
+        symmetry: “the probability is proportional to length/area/volume.” For instance, selecting a point uniformly in $[0,1]$ means
+        $$P([a,b])=b-a.$$
+        However, naive symmetry arguments in continuous settings can conflict, leading to paradoxes such as Bertrand’s paradox.
+      </p>
+      <p class="aside">
+        There are other interpretations (propensity, logical, etc.), but the key point is that <em>no single interpretation</em> automatically dominates all others in every context.
+        Each works well in a specific class of problems and becomes problematic elsewhere.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="axioms"><a class="anchor" href="#axioms">2) Kolmogorov’s axioms as a neutral common language</a></h2>
+      <p>
+        In the 20th century, Kolmogorov proposed an <em>axiomatic</em> foundation that deliberately does <strong>not</strong> choose a philosophical interpretation.
+        Instead, it isolates the minimal properties any reasonable probability assignment should satisfy.
+      </p>
+      <p>
+        The basic ingredients are:
+      </p>
+      <p>
+        • A sample space $\Omega$ of possible outcomes.<br/>
+        • A collection $\mathcal F$ of events (subsets of $\Omega$) forming a $\sigma$-algebra (see next section).<br/>
+        • A function $P:\mathcal F\to[0,1]$ called a probability measure, satisfying three axioms:
+      </p>
+      <p>
+        (A1) <strong>Non-negativity.</strong> For every $A\in\mathcal F$, $P(A)\ge 0$.<br/>
+        (A2) <strong>Normalization.</strong> $P(\Omega)=1$.<br/>
+        (A3) <strong>Countable additivity.</strong> For any countable family of pairwise disjoint events $(A_i)_{i\ge 1}$ in $\mathcal F$,
+        $$P\Big(\bigcup_{i=1}^\infty A_i\Big)=\sum_{i=1}^\infty P(A_i).$$
+      </p>
+      <p>
+        These axioms are intentionally silent about whether $P$ is a frequency, a belief, or a geometric ratio. Instead, they say:
+        “<em>Once</em> you map your real-world situation into $(\Omega,\mathcal F,P)$, the logical consequences are fixed.”
+      </p>
+      <div class="callout good">
+        <strong>How axioms resolve inconsistencies.</strong> Many classical paradoxes arise from informal probability assignments that violate the axioms,
+        especially countable additivity or measurability. The axiomatic framework forces us to:
+        (i) specify exactly what the sample space and events are, and (ii) ensure that $P$ is a genuine measure on a $\sigma$-algebra.
+        When this is done carefully, “different interpretations” become different ways of constructing $P$, not different logics.
+      </div>
+      <p>
+        In this sense, the axiomatic approach acts as a <em>referee</em>: classical, frequentist, Bayesian, and geometric constructions are all acceptable,
+        provided they produce a function $P$ that respects A1–A3 on a suitable $\sigma$-algebra. Once inside this framework, the same theorems
+        (Law of Large Numbers, Central Limit Theorem, etc.) apply equally to all interpretations.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="sigma-algebras"><a class="anchor" href="#sigma-algebras">3) From sets to $\sigma$-algebras: why measurability matters</a></h2>
+      <p>
+        Measure theory refines the vague phrase “all events we care about” into a precise object: a $\sigma$-algebra.
+      </p>
+      <p>
+        A <strong>$\sigma$-algebra</strong> $\mathcal F$ on $\Omega$ is a collection of subsets of $\Omega$ such that:
+      </p>
+      <p>
+        1. $\Omega\in\mathcal F$ and $\varnothing\in\mathcal F$.<br/>
+        2. If $A\in\mathcal F$, then its complement $A^c=\Omega\setminus A$ belongs to $\mathcal F$.<br/>
+        3. If $(A_i)_{i\ge 1}$ is a countable family in $\mathcal F$, then $\bigcup_{i=1}^\infty A_i\in\mathcal F$ (and therefore also
+           $\bigcap_{i=1}^\infty A_i\in\mathcal F$).
+      </p>
+      <p>
+        The pair $(\Omega,\mathcal F)$ is called a <strong>measurable space</strong>. Once we have $\mathcal F$, we can safely speak of probabilities $P(A)$ for
+        all $A\in\mathcal F$ without running into logical contradictions caused by “exotic” sets.
+      </p>
+      <p>
+        A <strong>probability measure</strong> on $(\Omega,\mathcal F)$ is then a function $P:\mathcal F\to[0,1]$ satisfying the axioms A1–A3.
+        Together, $(\Omega,\mathcal F,P)$ is a <strong>probability space</strong>, which is simultaneously a special case of a measure space in measure theory.
+      </p>
+      <p class="aside">
+        This connection is not merely cosmetic: every theorem in measure theory about integrals, convergence, or approximation can be specialized to probability
+        by taking the total mass of the measure to be $1$. This is why modern probability is essentially “measure theory with a normalized measure.”
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="random-variables"><a class="anchor" href="#random-variables">4) Random variables as measurable functions</a></h2>
+      <p>
+        Measure theory also clarifies what a <strong>random variable</strong> really is. Informally we say “a random variable takes random values,” but formally:
+      </p>
+      <p>
+        A random variable $X$ is a <strong>measurable function</strong>
+        $$X:(\Omega,\mathcal F)\longrightarrow(\mathbb R,\mathcal B(\mathbb R)),$$
+        where $\mathcal B(\mathbb R)$ is the Borel $\sigma$-algebra on $\mathbb R$ (generated by all open intervals).
+        Measurability means that for every Borel set $B\subseteq\mathbb R$,
+        $$\{\omega\in\Omega: X(\omega)\in B\}\in\mathcal F.$$
+      </p>
+      <p>
+        The <strong>distribution</strong> of $X$ is the push-forward measure $P_X$ on $\mathbb R$, defined by
+        $$P_X(B)=P(X\in B)=P(\{\omega\in\Omega:X(\omega)\in B\}).$$
+        In this way, one probability space can generate many different distributions via different random variables.
+      </p>
+      <p>
+        Expectation becomes a special case of the Lebesgue integral:
+        $$\mathbb E[X]=\int_\Omega X\,dP=\int_{\mathbb R} x\,dP_X(x).$$
+        Concepts like variance, covariance, convergence in distribution, and conditional expectation are all expressed in this language.
+        Probability theory is thus nothing more (and nothing less) than measure theory applied to random variables.
+      </p>
+      <div class="callout warn">
+        <strong>Interpretational neutrality.</strong> Whether you interpret $X$ as a measurement in repeated experiments (frequentist) or as a
+        numerical representation of uncertain beliefs (Bayesian), the formal object is the same measurable function $X:\Omega\to\mathbb R$.
+        The axiomatic–measure-theoretic framework does not care <em>why</em> you assign a given probability; it only enforces internal consistency.
+      </div>
+    </article>
+
+    <article class="card">
+      <h2 id="subadditivity"><a class="anchor" href="#subadditivity">5) Subadditivity from the axioms</a></h2>
+      <p>
+        One important consequence of the axioms is the <strong>subadditivity</strong> property:
+        $$P\Big(\bigcup_{i=1}^\infty A_i\Big)\le\sum_{i=1}^\infty P(A_i).$$
+        Intuitively, the probability that at least one of the events $A_i$ occurs cannot exceed the sum of their individual probabilities.
+      </p>
+      <p>
+        We derive this using only A1–A3. First consider the finite case $A_1,\dots,A_n$.
+        Define
+        $$B_1=A_1,\qquad B_k=A_k\setminus\bigcup_{j=1}^{k-1}A_j\quad (k\ge 2).$$
+        Then the sets $B_1,\dots,B_n$ are pairwise disjoint and
+        $$\bigcup_{i=1}^n A_i=\bigcup_{k=1}^n B_k.$$
+      </p>
+      <p>
+        By countable (here finite) additivity,
+        $$P\Big(\bigcup_{i=1}^n A_i\Big)
+          =P\Big(\bigcup_{k=1}^n B_k\Big)
+          =\sum_{k=1}^n P(B_k).$$
+        But by construction $B_k\subseteq A_k$, and from the axioms we can prove <strong>monotonicity</strong>:
+        if $C\subseteq D$, then $P(C)\le P(D)$. Indeed, $D$ can be written as a disjoint union $C\cup(D\setminus C)$, so
+        $$P(D)=P(C)+P(D\setminus C)\ge P(C).$$
+        Applying this to $B_k\subseteq A_k$ gives $P(B_k)\le P(A_k)$, hence
+        $$P\Big(\bigcup_{i=1}^n A_i\Big)=\sum_{k=1}^n P(B_k)\le\sum_{k=1}^n P(A_k).$$
+      </p>
+      <p>
+        For a countable family $(A_i)_{i\ge 1}$, we apply the finite subadditivity to the first $n$ sets:
+        $$P\Big(\bigcup_{i=1}^n A_i\Big)\le\sum_{i=1}^n P(A_i),\quad \forall n.$$
+        The left-hand side is an increasing sequence in $n$ that converges to $P(\bigcup_{i=1}^\infty A_i)$ by continuity from below (itself a consequence of the axioms),
+        while the right-hand side increases to $\sum_{i=1}^\infty P(A_i)$. Passing to the limit yields
+        $$P\Big(\bigcup_{i=1}^\infty A_i\Big)\le\sum_{i=1}^\infty P(A_i).$$
+      </p>
+      <p class="aside">
+        In words: if we ignore all overlaps between events, we overestimate their union. Subadditivity quantifies this overestimation.
+        The more the $A_i$ overlap, the looser the inequality becomes.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="inclusion-exclusion"><a class="anchor" href="#inclusion-exclusion">6) Inclusion–exclusion: correcting for overcounting</a></h2>
+      <p>
+        Subadditivity is an inequality. When we want an <em>exact</em> formula for the probability of a union of finitely many events, we need to correct for the
+        overcounting of overlaps. This leads to the <strong>inclusion–exclusion principle</strong>.
+      </p>
+      <p>
+        For two events $A$ and $B$, the axioms yield:
+        $$\begin{aligned}
+        P(A\cup B)
+          &=P(A)+P(B\setminus A) &&\text{(disjoint union)}\\
+          &=P(A)+\big(P(B)-P(B\cap A)\big)\\
+          &=P(A)+P(B)-P(A\cap B).
+        \end{aligned}$$
+        Here we “include” $P(A)$ and $P(B)$, then “exclude” the intersection $P(A\cap B)$ which was counted twice.
+      </p>
+      <p>
+        For three events $A,B,C$, write
+        $$A\cup B\cup C=(A\cup B)\cup C,$$
+        apply the two-set formula twice, and expand. After reorganizing terms we obtain
+        $$\begin{aligned}
+        P(A\cup B\cup C)
+          &=P(A)+P(B)+P(C)\\
+          &\quad -P(A\cap B)-P(A\cap C)-P(B\cap C)\\
+          &\quad +P(A\cap B\cap C).
+        \end{aligned}$$
+      </p>
+      
+      <div class="callout">
+        <strong>From equality to inequality.</strong> If we drop all the negative terms (“exclusion” terms) in the formula, what remains is
+        $$P\Big(\bigcup_{i=1}^n A_i\Big)\le \sum_{i=1}^n P(A_i),$$
+        which is exactly the finite subadditivity inequality. So subadditivity can be seen as a coarse upper bound, while inclusion–exclusion
+        gives the precise answer at the cost of tracking all overlaps.
+      </div>
+      <p class="aside">
+        Combinatorially, inclusion–exclusion says: each outcome of $\Omega$ that belongs to exactly $m$ of the sets $A_i$ is counted 
+        $\binom{m}{1}-\binom{m}{2}+\cdots+(-1)^{m+1}\binom{m}{m}=1$ times in total. The alternating pattern corrects the overcount
+        introduced by naive summation.
+      </p>
+    </article>
+
+    <article class="card">
+      <h2 id="closing"><a class="anchor" href="#closing">7) Closing picture</a></h2>
+      <p>
+        The main interpretations of probability—classical, frequentist, Bayesian, geometric—emphasize different sources and meanings of the numbers we call
+        $P(A)$. They are not mutually exclusive dogmas but complementary perspectives on how to construct a probability measure in practice.
+      </p>
+      <p>
+        Kolmogorov’s axioms and the measure-theoretic framework $(\Omega,\mathcal F,\mathbb P)$ provide a <em>common logical core</em> in which all these
+        constructions can live, as long as they respect non-negativity, normalization, and countable additivity on a $\sigma$-algebra of events.
+      </p>
+      <p>
+        Within this framework, properties such as subadditivity and the inclusion–exclusion principle follow mechanically from the axioms.
+        They capture in formulas a very intuitive idea: probabilities of unions are about combining and correcting overlaps.
+        Measure theory packages this intuition into a clean structure where random variables are just measurable functions and expectations are integrals.
+      </p>
+      <p class="aside">
+        If you keep a single blueprint in mind: <em>interpretations explain where probabilities come from; axioms and measure theory explain how they must behave.</em>
+        Once a probability space is fixed, the rest—laws of large numbers, limit theorems, combinatorial identities—unfold from this shared foundation.
+      </p>
+    </article>
+
+  </div>
+</body>
+</html>
