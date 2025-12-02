@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Homework 11 – Brownian Motion Simulation (Box–Muller)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+           background: #f4f4f8; color: #222; line-height: 1.6; }
+    header .title { max-width: 960px; margin: 0 auto; }
+    header h1 { font-size: 1.9rem; margin-bottom: 0.3rem; }
+    header p { font-size: 0.95rem; opacity: 0.9; }
+    main { max-width: 960px; margin: 0 auto 2rem auto; padding: 0 1rem 2rem; }
+
+    section { background: #fff; border-radius: 10px; padding: 1.2rem 1.4rem; 
+              margin-bottom: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    h2 { font-size: 1.2rem; margin-bottom: 0.5rem; color: #1f355a; }
+    h3 { font-size: 1rem; margin: 0.8rem 0 0.3rem; color: #2b4a7f; }
+    p { margin-bottom: 0.5rem; font-size: 0.95rem; }
+    code { background: #f0f0f5; padding: 0 0.2rem; border-radius: 4px; }
+
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+                gap: 0.6rem; margin-top: 0.6rem; margin-bottom: 0.8rem; }
+
+    .control-group { display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.9rem; }
+    .control-group label { font-weight: 600; color: #2a3e64; }
+    .control-group input { padding: 0.25rem 0.35rem; border-radius: 6px; 
+                           border: 1px solid #cfd4e6; font-size: 0.9rem; }
+
+    button { padding: 0.4rem 0.7rem; border-radius: 6px; border: none; background: #375da8;
+             color: #fff; font-size: 0.9rem; font-weight: 600; cursor: pointer; 
+             transition: background 0.15s ease, transform 0.1s ease; }
+    button:hover { background: #2c4a84; transform: translateY(-1px); }
+
+    .panels { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr); 
+              gap: 1rem; margin-top: 0.6rem; }
+
+    .panel { background: #f9f9fc; border-radius: 10px; padding: 0.6rem; 
+             border: 1px solid #e0e3f0; }
+    canvas { width: 100%; height: 260px; border-radius: 8px; background: #ffffff; 
+             border: 1px solid #dde1f0; display: block; }
+
+    .stats { font-size: 0.9rem; margin-top: 0.4rem; white-space: pre-line; }
+    .legend { font-size: 0.85rem; margin-top: 0.4rem; color: #555; }
+    footer { max-width: 960px; margin: 0 auto; padding: 0 1rem 2rem; 
+             font-size: 0.8rem; color: #666; }
+
+    @media (max-width: 760px) { .panels { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="title">
+    <h1>Homework 11 – Simulation of Brownian Motion</h1>
+    <p>Using the Box–Muller transform to generate standard normals from uniform RNG.</p>
+  </div>
+</header>
+
+<main>
+
+<!----------------------- SECTION 1 ------------------------>
+<section>
+  <h2>1. Brownian Motion Model</h2>
+
+  <p>We simulate a Brownian motion (Wiener process) with:</p>
+
+  <p><code>W(0) = 0</code><br>
+  <code>W(t+Δt) = W(t) + μΔt + σ√Δt · Z</code>, where <code>Z ∼ N(0,1)</code>.</p>
+</section>
+
+<!----------------------- SECTION 2 (controls + single/distr) ------------------------>
+<section>
+  <h2>2. Interactive Simulation</h2>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>μ (drift)</label>
+      <input id="muInput" type="number" step="0.1" value="0">
+    </div>
+
+    <div class="control-group">
+      <label>σ (volatility)</label>
+      <input id="sigmaInput" type="number" step="0.1" min="0" value="1">
+    </div>
+
+    <div class="control-group">
+      <label>Total time T</label>
+      <input id="tInput" type="number" step="0.1" min="0.1" value="1">
+    </div>
+
+    <div class="control-group">
+      <label>Steps n</label>
+      <input id="nInput" type="number" min="10" step="10" value="1000">
+    </div>
+
+    <div class="control-group">
+      <label>Trajectories for W(T) histogram</label>
+      <input id="repInput" type="number" min="1" step="1" value="300">
+    </div>
+
+    <button id="runButton">Run simulation</button>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h3>Single Brownian Path</h3>
+      <canvas id="trajectoryCanvas" width="600" height="260"></canvas>
+      <div class="legend">One realization W(t).</div>
+    </div>
+
+    <div class="panel">
+      <h3>Distribution of W(T)</h3>
+      <canvas id="histCanvas" width="400" height="260"></canvas>
+      <div id="stats" class="stats"></div>
+    </div>
+  </div>
+</section>
+
+<!----------------------- SECTION 3: MULTIPLE TRAJECTORIES ------------------------>
+<section>
+  <h2>3. Multiple Trajectories (like screenshot)</h2>
+
+  <p>This plot shows many independent paths W(t).  
+     Their dispersion grows like √t, as expected for Brownian motion.</p>
+
+  <div class="panel">
+    <h3>Multiple Brownian Paths</h3>
+    <canvas id="multiCanvas" width="900" height="350"></canvas>
+    <div class="legend">100+ trajectories drawn with transparency.</div>
+  </div>
+
+  <div class="control-group" style="margin-top:10px;">
+    <label>Number of trajectories</label>
+    <input id="multiCountInput" type="number" min="5" step="5" value="100">
+  </div>
+
+  <button id="multiButton">Draw multiple trajectories</button>
+</section>
+
+</main>
+
+<footer>Homework 11 – Brownian Motion via Box–Muller</footer>
+
+<!----------------------- JAVASCRIPT ---------------------------->
+<script>
+
+/* -----------------------------------------------------------
+   Box–Muller normal generator
+----------------------------------------------------------- */
+function boxMullerPair() {
+  let u1 = 0, u2 = 0;
+  while (u1 === 0) u1 = Math.random();
+  while (u2 === 0) u2 = Math.random();
+  const R = Math.sqrt(-2 * Math.log(u1));
+  const θ = 2 * Math.PI * u2;
+  return [R * Math.cos(θ), R * Math.sin(θ)];
+}
+
+function* normalGenerator() {
+  while (true) {
+    let [z1, z2] = boxMullerPair();
+    yield z1; yield z2;
+  }
+}
+
+/* -----------------------------------------------------------
+   Generate one Brownian trajectory
+----------------------------------------------------------- */
+function generateBrownianPath(mu, sigma, T, n) {
+  const dt = T / n;
+  const sqrtDt = Math.sqrt(dt);
+
+  const times = new Array(n+1);
+  const values = new Array(n+1);
+  times[0] = 0;
+  values[0] = 0;
+
+  const gen = normalGenerator();
+  let W = 0;
+
+  for (let k = 1; k <= n; k++) {
+    const z = gen.next().value;
+    W += mu * dt + sigma * sqrtDt * z;
+    times[k] = k * dt;
+    values[k] = W;
+  }
+
+  return { times, values, W_T: W };
+}
+
+/* -----------------------------------------------------------
+   Draw single trajectory
+----------------------------------------------------------- */
+function drawTrajectory(canvas, traj) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width, height = canvas.height;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const { times, values } = traj;
+  const T = times[times.length - 1];
+
+  const vmin = Math.min(...values);
+  const vmax = Math.max(...values);
+  const pad = (vmax - vmin) * 0.1 || 1;
+
+  const ymin = vmin - pad;
+  const ymax = vmax + pad;
+
+  const L = 40, R = 10, Tpad = 10, B = 30;
+  const Wp = width - L - R;
+  const Hp = height - Tpad - B;
+
+  function x(t) { return L + (t / T) * Wp; }
+  function y(v) { return (height - B) - ((v - ymin) / (ymax - ymin)) * Hp; }
+
+  ctx.strokeStyle = "#2d61c2";
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(x(times[0]), y(values[0]));
+  for (let k = 1; k < times.length; k++) ctx.lineTo(x(times[k]), y(values[k]));
+  ctx.stroke();
+}
+
+/* -----------------------------------------------------------
+   Draw histogram
+----------------------------------------------------------- */
+function drawHistogram(canvas, samples, meanT, varT) {
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width, height = canvas.height;
+  ctx.clearRect(0, 0, width, height);
+
+  if (samples.length === 0) return;
+
+  const bins = 30;
+  const minS = Math.min(...samples);
+  const maxS = Math.max(...samples);
+  const range = maxS - minS || 1;
+  const binWidth = range / bins;
+
+  const freq = new Array(bins).fill(0);
+  samples.forEach(v => {
+    let i = Math.floor((v - minS) / binWidth);
+    if (i < 0) i = 0;
+    if (i >= bins) i = bins - 1;
+    freq[i]++;
+  });
+
+  const maxFreq = Math.max(...freq);
+
+  const L = 40, R = 10, Tpad = 10, B = 30;
+  const Wp = width - L - R;
+  const Hp = height - Tpad - B;
+
+  ctx.strokeStyle = "#777";
+  ctx.beginPath();
+  ctx.moveTo(L, height - B); ctx.lineTo(width - R, height - B);
+  ctx.moveTo(L, height - B); ctx.lineTo(L, Tpad);
+  ctx.stroke();
+
+  const barSpace = Wp / bins;
+  const barW = barSpace * 0.8;
+
+  ctx.fillStyle = "#3f6bd366";
+  for (let i = 0; i < bins; i++) {
+    const h = (freq[i] / maxFreq) * Hp;
+    const x = L + i * barSpace + (barSpace - barW) / 2;
+    const y = (height - B) - h;
+    ctx.fillRect(x, y, barW, h);
+  }
+}
+
+/* -----------------------------------------------------------
+   GRID for multiple trajectories
+----------------------------------------------------------- */
+function drawGrid(ctx, w, h, stepX=80, stepY=40) {
+  ctx.strokeStyle = "#e6e6ef";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x <= w; x += stepX) {
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+  }
+  for (let y = 0; y <= h; y += stepY) {
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+}
+
+/* -----------------------------------------------------------
+   Multiple Trajectories Plot
+----------------------------------------------------------- */
+function drawMultipleTrajectories(mu, sigma, T, n, count) {
+  const canvas = document.getElementById("multiCanvas");
+  const ctx = canvas.getContext("2d");
+  const width = canvas.width, height = canvas.height;
+
+  ctx.clearRect(0, 0, width, height);
+  drawGrid(ctx, width, height);
+
+  const dt = T / n, sqrtDt = Math.sqrt(dt);
+  const L = 40, R = 10, Tpad = 10, B = 30;
+  const Wp = width - L - R;
+  const Hp = height - Tpad - B;
+
+  function x(t) { return L + (t / T) * Wp; }
+
+  // Rough range estimate for y-scaling
+  const temp = generateBrownianPath(mu, sigma, T, n).values;
+  let vmin = Math.min(...temp), vmax = Math.max(...temp);
+  const pad = (vmax - vmin) * 0.25 || 1;
+  vmin -= pad; vmax += pad;
+  function y(v) { return (height - B) - ((v - vmin) / (vmax - vmin)) * Hp; }
+
+  // axes
+  ctx.strokeStyle = "#777";
+  ctx.beginPath();
+  ctx.moveTo(L, height - B); ctx.lineTo(width - R, height - B);
+  ctx.moveTo(L, height - B); ctx.lineTo(L, Tpad);
+  ctx.stroke();
+
+  // draw paths
+  for (let r = 0; r < count; r++) {
+    const { times, values } = generateBrownianPath(mu, sigma, T, n);
+
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(70,130,230,0.25)";
+    ctx.lineWidth = 1.3;
+
+    ctx.moveTo(x(times[0]), y(values[0]));
+    for (let k = 1; k <= n; k++) ctx.lineTo(x(times[k]), y(values[k]));
+    ctx.stroke();
+  }
+}
+
+/* -----------------------------------------------------------
+   MAIN BUTTON HANDLERS
+----------------------------------------------------------- */
+
+document.getElementById("runButton").addEventListener("click", () => {
+  const mu = parseFloat(muInput.value),
+        sigma = parseFloat(sigmaInput.value),
+        T = parseFloat(tInput.value),
+        n = parseInt(nInput.value),
+        reps = parseInt(repInput.value);
+
+  const traj = generateBrownianPath(mu, sigma, T, n);
+  drawTrajectory(trajectoryCanvas, traj);
+
+  const finals = [];
+  for (let r = 0; r < reps; r++) {
+    const p = generateBrownianPath(mu, sigma, T, n);
+    finals.push(p.W_T);
+  }
+
+  drawHistogram(histCanvas, finals, mu*T, sigma*sigma*T);
+
+  const m = finals.reduce((a,b)=>a+b,0)/reps;
+  const v = finals.reduce((a,b)=>a+(b-m)*(b-m),0)/reps;
+
+  stats.textContent =
+    `Empirical Mean:  ${m.toFixed(4)}\n` +
+    `Empirical Var:   ${v.toFixed(4)}\n\n` +
+    `Theory:\nE[W(T)] = μT = ${ (mu*T).toFixed(4) }\nVar[W(T)] = σ²T = ${(sigma*sigma*T).toFixed(4)}`;
+});
+
+document.getElementById("multiButton").addEventListener("click", () => {
+  drawMultipleTrajectories(
+    parseFloat(muInput.value),
+    parseFloat(sigmaInput.value),
+    parseFloat(tInput.value),
+    parseInt(nInput.value),
+    parseInt(multiCountInput.value)
+  );
+});
+
+// auto-run once
+window.addEventListener("load", () => {
+  document.getElementById("runButton").click();
+  document.getElementById("multiButton").click();
+});
+
+</script>
+</body>
+</html>
